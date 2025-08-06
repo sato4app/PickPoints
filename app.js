@@ -42,15 +42,20 @@ class PickPoints {
     }
     
     setupCanvas() {
-        const containerWidth = this.canvas.parentElement.clientWidth;
-        const maxWidth = Math.min(containerWidth - 40, 800);
+        const container = this.canvas.parentElement;
+        const containerWidth = container.clientWidth - 40;
+        const maxWidth = Math.min(containerWidth, 800);
         
         const aspectRatio = this.currentImage.height / this.currentImage.width;
-        this.canvas.width = maxWidth;
-        this.canvas.height = maxWidth * aspectRatio;
+        const canvasWidth = maxWidth;
+        const canvasHeight = maxWidth * aspectRatio;
         
-        this.canvas.style.width = maxWidth + 'px';
-        this.canvas.style.height = (maxWidth * aspectRatio) + 'px';
+        this.canvas.width = canvasWidth;
+        this.canvas.height = canvasHeight;
+        
+        this.canvas.style.width = canvasWidth + 'px';
+        this.canvas.style.height = canvasHeight + 'px';
+        this.canvas.style.display = 'block';
     }
     
     drawImage() {
