@@ -31,10 +31,15 @@ class PickPoints {
         reader.onload = (e) => {
             const img = new Image();
             img.onload = () => {
+                console.log('Image loaded:', img.width, 'x', img.height);
                 this.currentImage = img;
                 this.setupCanvas();
                 this.drawImage();
                 this.enableControls();
+            };
+            img.onerror = (err) => {
+                console.error('Failed to load image:', err);
+                alert('画像の読み込みに失敗しました');
             };
             img.src = e.target.result;
         };
@@ -43,8 +48,9 @@ class PickPoints {
     
     setupCanvas() {
         const container = this.canvas.parentElement;
-        const containerWidth = container.clientWidth - 40;
-        const maxWidth = Math.min(containerWidth, 800);
+        const containerRect = container.getBoundingClientRect();
+        const availableWidth = Math.max(containerRect.width - 40, 300);
+        const maxWidth = Math.min(availableWidth, 800);
         
         const aspectRatio = this.currentImage.height / this.currentImage.width;
         const canvasWidth = maxWidth;
@@ -56,6 +62,14 @@ class PickPoints {
         this.canvas.style.width = canvasWidth + 'px';
         this.canvas.style.height = canvasHeight + 'px';
         this.canvas.style.display = 'block';
+        this.canvas.style.visibility = 'visible';
+        
+        console.log('Canvas setup:', {
+            containerWidth: containerRect.width,
+            canvasWidth,
+            canvasHeight,
+            imageSize: { width: this.currentImage.width, height: this.currentImage.height }
+        });
     }
     
     drawImage() {
