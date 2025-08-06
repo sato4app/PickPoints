@@ -14,18 +14,15 @@ class PickPoints {
         const clearBtn = document.getElementById('clearBtn');
         const exportBtn = document.getElementById('exportBtn');
         
-        console.log('Elements found:', { imageInput, clearBtn, exportBtn });
         
         imageInput.addEventListener('change', (e) => this.handleImageLoad(e));
         this.canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
         clearBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            console.log('Clear button clicked');
             this.clearPoints();
         });
         exportBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            console.log('Export button clicked');
             this.exportJSON();
         });
     }
@@ -41,14 +38,12 @@ class PickPoints {
         reader.onload = (e) => {
             const img = new Image();
             img.onload = () => {
-                console.log('Image loaded:', img.width, 'x', img.height);
                 this.currentImage = img;
                 this.setupCanvas();
                 this.drawImage();
                 this.enableControls();
             };
-            img.onerror = (err) => {
-                console.error('Failed to load image:', err);
+            img.onerror = () => {
                 alert('画像の読み込みに失敗しました');
             };
             img.src = e.target.result;
@@ -74,38 +69,16 @@ class PickPoints {
         this.canvas.style.display = 'block';
         this.canvas.style.visibility = 'visible';
         
-        console.log('Canvas setup:', {
-            containerWidth: containerRect.width,
-            canvasWidth,
-            canvasHeight,
-            imageSize: { width: this.currentImage.width, height: this.currentImage.height }
-        });
     }
     
     drawImage() {
-        if (!this.currentImage) {
-            console.log('No image to draw');
-            return;
-        }
+        if (!this.currentImage) return;
         
-        console.log('Drawing image:', {
-            canvasSize: { width: this.canvas.width, height: this.canvas.height },
-            imageSize: { width: this.currentImage.width, height: this.currentImage.height },
-            canvasStyle: { width: this.canvas.style.width, height: this.canvas.style.height }
-        });
         
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
-        // Test drawing with a colored background first
-        this.ctx.fillStyle = '#f0f0f0';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         
-        try {
-            this.ctx.drawImage(this.currentImage, 0, 0, this.canvas.width, this.canvas.height);
-            console.log('Image drawn successfully');
-        } catch (error) {
-            console.error('Error drawing image:', error);
-        }
+        this.ctx.drawImage(this.currentImage, 0, 0, this.canvas.width, this.canvas.height);
         
         this.drawAllPoints();
     }
@@ -149,12 +122,10 @@ class PickPoints {
     }
     
     clearPoints() {
-        console.log('Clearing points, current count:', this.points.length);
         this.points = [];
         this.clearInputBoxes();
         this.drawImage();
         this.updatePointCount();
-        console.log('Points cleared');
     }
     
     updatePointCount() {
