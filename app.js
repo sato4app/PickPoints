@@ -73,10 +73,30 @@ class PickPoints {
     }
     
     drawImage() {
-        if (!this.currentImage) return;
+        if (!this.currentImage) {
+            console.log('No image to draw');
+            return;
+        }
+        
+        console.log('Drawing image:', {
+            canvasSize: { width: this.canvas.width, height: this.canvas.height },
+            imageSize: { width: this.currentImage.width, height: this.currentImage.height },
+            canvasStyle: { width: this.canvas.style.width, height: this.canvas.style.height }
+        });
         
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        this.ctx.drawImage(this.currentImage, 0, 0, this.canvas.width, this.canvas.height);
+        
+        // Test drawing with a colored background first
+        this.ctx.fillStyle = '#f0f0f0';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        try {
+            this.ctx.drawImage(this.currentImage, 0, 0, this.canvas.width, this.canvas.height);
+            console.log('Image drawn successfully');
+        } catch (error) {
+            console.error('Error drawing image:', error);
+        }
+        
         this.drawAllPoints();
     }
     
