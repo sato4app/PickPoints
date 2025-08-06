@@ -187,8 +187,7 @@ class PickPoints {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
     }
-}
-
+    
     createInputBox(point, index) {
         const rect = this.canvas.getBoundingClientRect();
         const scaleX = rect.width / this.canvas.width;
