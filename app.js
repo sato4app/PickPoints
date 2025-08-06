@@ -4,6 +4,7 @@ class PickPoints {
         this.ctx = this.canvas.getContext('2d');
         this.points = [];
         this.currentImage = null;
+        this.inputElements = [];
         
         this.initializeEventListeners();
     }
@@ -71,9 +72,14 @@ class PickPoints {
     }
     
     addPoint(x, y) {
-        const point = { x: Math.round(x), y: Math.round(y) };
+        const point = { 
+            x: Math.round(x), 
+            y: Math.round(y),
+            id: ''
+        };
         this.points.push(point);
         this.drawPoint(point);
+        this.createInputBox(point, this.points.length - 1);
         this.updatePointCount();
     }
     
@@ -90,10 +96,12 @@ class PickPoints {
     
     drawAllPoints() {
         this.points.forEach(point => this.drawPoint(point));
+        this.redrawInputBoxes();
     }
     
     clearPoints() {
         this.points = [];
+        this.clearInputBoxes();
         this.drawImage();
         this.updatePointCount();
     }
@@ -120,7 +128,8 @@ class PickPoints {
                 height: this.canvas.height
             },
             points: this.points.map((point, index) => ({
-                id: index + 1,
+                index: index + 1,
+                id: point.id || '',
                 x: point.x,
                 y: point.y
             })),
@@ -138,6 +147,69 @@ class PickPoints {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+    }
+}
+
+    createInputBox(point, index) {
+        const rect = this.canvas.getBoundingClientRect();
+        const scaleX = rect.width / this.canvas.width;
+        const scaleY = rect.height / this.canvas.height;
+        
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.maxLength = 4;
+        input.className = 'point-id-input';
+        input.placeholder = 'ID';
+        
+        const inputX = this.findOptimalInputPosition(point.x, point.y, scaleX, rect.left);
+        const inputY = point.y * scaleY + rect.top - 15;
+        
+        input.style.position = 'absolute';
+        input.style.left = inputX + 'px';
+        input.style.top = inputY + 'px';
+        input.style.zIndex = '1000';
+        
+        input.addEventListener('input', (e) => {
+            this.points[index].id = e.target.value;
+        });
+        
+        document.body.appendChild(input);
+        this.inputElements.push(input);
+        
+        setTimeout(() => input.focus(), 100);
+    }
+    
+    findOptimalInputPosition(pointX, pointY, scaleX, canvasLeft) {
+        const inputWidth = 50;
+        const margin = 10;
+        const scaledPointX = pointX * scaleX + canvasLeft;
+        
+        const rightPos = scaledPointX + margin;
+        const leftPos = scaledPointX - inputWidth - margin;
+        
+        if (rightPos + inputWidth < window.innerWidth - 20) {
+            return rightPos;
+        } else {
+            return Math.max(leftPos, canvasLeft + 5);
+        }
+    }
+    
+    redrawInputBoxes() {
+        this.clearInputBoxes();
+        this.points.forEach((point, index) => {
+            this.createInputBox(point, index);
+            const input = this.inputElements[this.inputElements.length - 1];
+            input.value = point.id || '';
+        });
+    }
+    
+    clearInputBoxes() {
+        this.inputElements.forEach(input => {
+            if (input && input.parentNode) {
+                input.parentNode.removeChild(input);
+            }
+        });
+        this.inputElements = [];
     }
 }
 

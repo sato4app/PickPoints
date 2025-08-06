@@ -13,22 +13,22 @@
             <p>ハイキングマップからポイントを選択してJSON出力</p>
         </header>
         
-        <div class="controls">
-            <div class="file-input-wrapper">
-                <label for="imageInput" class="file-input-label">
-                    画像を選択 (PNG)
-                </label>
-                <input type="file" id="imageInput" accept="image/png" class="file-input">
+        <div class="main-content">
+            <div class="map-container">
+                <canvas id="mapCanvas" class="map-canvas"></canvas>
             </div>
             
-            <div class="button-group">
+            <div class="controls-sidebar">
+                <div class="file-input-wrapper">
+                    <label for="imageInput" class="file-input-label">
+                        画像を選択
+                    </label>
+                    <input type="file" id="imageInput" accept="image/png" class="file-input">
+                </div>
+                
                 <button id="clearBtn" class="btn btn-clear" disabled>クリア</button>
                 <button id="exportBtn" class="btn btn-export" disabled>JSON出力</button>
             </div>
-        </div>
-        
-        <div class="map-container">
-            <canvas id="mapCanvas" class="map-canvas"></canvas>
         </div>
         
         <div class="info-panel">
