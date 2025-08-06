@@ -14,10 +14,20 @@ class PickPoints {
         const clearBtn = document.getElementById('clearBtn');
         const exportBtn = document.getElementById('exportBtn');
         
+        console.log('Elements found:', { imageInput, clearBtn, exportBtn });
+        
         imageInput.addEventListener('change', (e) => this.handleImageLoad(e));
         this.canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
-        clearBtn.addEventListener('click', () => this.clearPoints());
-        exportBtn.addEventListener('click', () => this.exportJSON());
+        clearBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log('Clear button clicked');
+            this.clearPoints();
+        });
+        exportBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log('Export button clicked');
+            this.exportJSON();
+        });
     }
     
     handleImageLoad(event) {
@@ -139,10 +149,12 @@ class PickPoints {
     }
     
     clearPoints() {
+        console.log('Clearing points, current count:', this.points.length);
         this.points = [];
         this.clearInputBoxes();
         this.drawImage();
         this.updatePointCount();
+        console.log('Points cleared');
     }
     
     updatePointCount() {
