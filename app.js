@@ -540,12 +540,18 @@ class PickPoints {
         
         data.points.forEach(pointData => {
             if (pointData.x !== undefined && pointData.y !== undefined) {
-                // Skip if ID matches start or end point IDs
+                // Skip start and end points (they should not be registered as markers)
+                if (pointData.type === 'start' || pointData.type === 'end') {
+                    return;
+                }
+                
+                // Skip if ID matches start or end point IDs (but allow blank IDs)
                 if (pointData.id && (pointData.id === startPointId || pointData.id === endPointId)) {
                     return;
                 }
                 
                 // Create marker point with blue color, size 3, stroke 1
+                // Include waypoints and any other points, even with blank ID
                 const point = {
                     x: Math.round(pointData.x * scaleX),
                     y: Math.round(pointData.y * scaleY),
