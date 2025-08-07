@@ -243,7 +243,7 @@ class PickPoints {
         
         input.addEventListener('input', (e) => {
             const value = e.target.value;
-            if (value === 'null') {
+            if (value === '') {
                 this.removePoint(index);
                 return;
             }
