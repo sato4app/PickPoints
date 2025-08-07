@@ -243,10 +243,6 @@ class PickPoints {
         
         input.addEventListener('input', (e) => {
             const value = e.target.value;
-            if (value === '') {
-                this.removePoint(index);
-                return;
-            }
             const uppercaseValue = value.replace(/[a-z]/g, (match) => match.toUpperCase());
             this.points[index].id = uppercaseValue;
             if (uppercaseValue !== value) {
