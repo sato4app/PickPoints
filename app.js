@@ -534,24 +534,32 @@ class PickPoints {
         if (data.routeInfo.endPoint) {
             document.getElementById('endPoint').value = data.routeInfo.endPoint;
         }
+        if (data.routeInfo.waypointCount !== undefined) {
+            document.getElementById('waypointCount').textContent = data.routeInfo.waypointCount;
+        }
         
         const startPointId = data.routeInfo.startPoint;
         const endPointId = data.routeInfo.endPoint;
         
         data.points.forEach(pointData => {
+            console.log('Processing point:', pointData);
+            
             if (pointData.x !== undefined && pointData.y !== undefined) {
                 // Skip start and end points (they should not be registered as markers)
                 if (pointData.type === 'start' || pointData.type === 'end') {
+                    console.log('Skipping start/end point:', pointData.type);
                     return;
                 }
                 
                 // Skip if ID matches start or end point IDs (but allow blank IDs)
                 if (pointData.id && (pointData.id === startPointId || pointData.id === endPointId)) {
+                    console.log('Skipping point with matching ID:', pointData.id);
                     return;
                 }
                 
                 // Create marker point with blue color, size 3, stroke 1
                 // Include waypoints and any other points, even with blank ID
+                console.log('Creating marker for point:', pointData);
                 const point = {
                     x: Math.round(pointData.x * scaleX),
                     y: Math.round(pointData.y * scaleY),
@@ -560,6 +568,7 @@ class PickPoints {
                 };
                 this.points.push(point);
                 this.createInputBox(point, this.points.length - 1);
+                console.log('Added marker point:', point);
             }
         });
         
