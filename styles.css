@@ -246,6 +246,12 @@ header p {
     gap: 5px;
 }
 
+.input-group-horizontal {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 .input-group label {
     font-size: 14px;
     font-weight: 500;
@@ -262,6 +268,20 @@ header p {
 }
 
 .route-input:focus {
+    border-color: #3498db;
+}
+
+.route-input-narrow {
+    padding: 8px 12px;
+    border: 2px solid #dee2e6;
+    border-radius: 4px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.3s ease;
+    width: 80px;
+}
+
+.route-input-narrow:focus {
     border-color: #3498db;
 }
 
