@@ -412,6 +412,8 @@ class PickPoints {
                 input.style.display = 'block';
             }
         });
+        // Redraw input boxes to ensure they are positioned correctly
+        this.redrawInputBoxes();
     }
     
     exportRouteJSON() {
