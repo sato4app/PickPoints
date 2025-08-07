@@ -71,6 +71,8 @@ class PickPoints {
             }
         };
         reader.readAsText(file);
+        
+        event.target.value = '';
     }
     
     loadPointsFromJSON(data) {
@@ -92,13 +94,12 @@ class PickPoints {
                     id: pointData.id || ''
                 };
                 this.points.push(point);
+                this.createInputBox(point, this.points.length - 1);
             }
         });
         
         this.drawImage();
         this.updatePointCount();
-        
-        event.target.value = '';
     }
     
     setupCanvas() {
