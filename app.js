@@ -25,6 +25,8 @@ class PickPoints {
         const startPointInput = document.getElementById('startPoint');
         const endPointInput = document.getElementById('endPoint');
         
+        console.log('Route JSON input element:', routeJsonInput);
+        
         
         imageInput.addEventListener('change', (e) => this.handleImageLoad(e));
         this.canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
@@ -49,7 +51,10 @@ class PickPoints {
             e.preventDefault();
             this.exportRouteJSON();
         });
-        routeJsonInput.addEventListener('change', (e) => this.handleRouteJSONLoad(e));
+        routeJsonInput.addEventListener('change', (e) => {
+            console.log('Route JSON input change event triggered');
+            this.handleRouteJSONLoad(e);
+        });
         startPointInput.addEventListener('input', (e) => this.updateRouteButtons());
         endPointInput.addEventListener('input', (e) => this.updateRouteButtons());
     }
@@ -492,34 +497,57 @@ class PickPoints {
     }
     
     handleRouteJSONLoad(event) {
+        console.log('===== Route JSON Load Started =====');
+        console.log('Event:', event);
+        console.log('Target:', event.target);
+        console.log('Files:', event.target.files);
+        
         const file = event.target.files[0];
+        console.log('Selected file:', file);
+        
         if (!file || !file.type.includes('json')) {
+            console.log('File validation failed:', file ? file.type : 'No file');
             alert('JSONファイルを選択してください');
             return;
         }
         
         if (!this.currentImage) {
+            console.log('No image loaded');
             alert('先に画像を読み込んでください');
             return;
         }
         
+        console.log('Starting file read...');
         const reader = new FileReader();
         reader.onload = (e) => {
+            console.log('File read completed');
+            console.log('File content:', e.target.result);
             try {
                 const jsonData = JSON.parse(e.target.result);
+                console.log('JSON parsed successfully:', jsonData);
                 this.loadRouteFromJSON(jsonData);
             } catch (error) {
-                alert('JSONファイルの形式が正しくありません');
                 console.error('JSON parse error:', error);
+                alert('JSONファイルの形式が正しくありません');
             }
         };
         reader.readAsText(file);
         
         event.target.value = '';
+        console.log('===== Route JSON Load Process Initiated =====');
     }
     
     loadRouteFromJSON(data) {
+        console.log('===== Load Route From JSON Started =====');
+        console.log('Received data:', data);
+        console.log('Data points:', data.points);
+        console.log('Data routeInfo:', data.routeInfo);
+        
         if (!data.points || !Array.isArray(data.points) || !data.routeInfo) {
+            console.log('Data validation failed');
+            console.log('Has points:', !!data.points);
+            console.log('Is points array:', Array.isArray(data.points));
+            console.log('Has routeInfo:', !!data.routeInfo);
             alert('ルートJSONファイルの形式が正しくありません');
             return;
         }
