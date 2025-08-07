@@ -21,6 +21,7 @@ class PickPoints {
         const startRouteBtn = document.getElementById('startRouteBtn');
         const endRouteBtn = document.getElementById('endRouteBtn');
         const exportRouteBtn = document.getElementById('exportRouteBtn');
+        const routeJsonInput = document.getElementById('routeJsonInput');
         const startPointInput = document.getElementById('startPoint');
         const endPointInput = document.getElementById('endPoint');
         
@@ -48,6 +49,7 @@ class PickPoints {
             e.preventDefault();
             this.exportRouteJSON();
         });
+        routeJsonInput.addEventListener('change', (e) => this.handleRouteJSONLoad(e));
         startPointInput.addEventListener('input', (e) => this.updateRouteButtons());
         endPointInput.addEventListener('input', (e) => this.updateRouteButtons());
     }
@@ -186,13 +188,13 @@ class PickPoints {
         this.updatePointCount();
     }
     
-    drawPoint(point, color = '#ff0000') {
+    drawPoint(point, color = '#ff0000', radius = 4, strokeWidth = 1.5) {
         this.ctx.fillStyle = color;
         this.ctx.strokeStyle = '#ffffff';
-        this.ctx.lineWidth = 1.5;
+        this.ctx.lineWidth = strokeWidth;
         
         this.ctx.beginPath();
-        this.ctx.arc(point.x, point.y, 4, 0, 2 * Math.PI);
+        this.ctx.arc(point.x, point.y, radius, 0, 2 * Math.PI);
         this.ctx.fill();
         this.ctx.stroke();
     }
@@ -200,10 +202,19 @@ class PickPoints {
     drawAllPoints() {
         this.points.forEach(point => {
             let color = '#ff0000';
+            let radius = 4;
+            let strokeWidth = 1.5;
+            
             if (this.routeMode && (point.id === this.startPointId || point.id === this.endPointId)) {
                 color = '#0066ff';
+            } else if (point.isMarker) {
+                // Blue markers from loaded JSON: size 3, stroke 1
+                color = '#0066ff';
+                radius = 3;
+                strokeWidth = 1;
             }
-            this.drawPoint(point, color);
+            
+            this.drawPoint(point, color, radius, strokeWidth);
         });
         
         this.routePoints.forEach(point => {
@@ -478,6 +489,76 @@ class PickPoints {
         this.drawPoint(point, '#ff8800');
         this.updateWaypointCount();
         this.updateRouteButtons();
+    }
+    
+    handleRouteJSONLoad(event) {
+        const file = event.target.files[0];
+        if (!file || !file.type.includes('json')) {
+            alert('JSONファイルを選択してください');
+            return;
+        }
+        
+        if (!this.currentImage) {
+            alert('先に画像を読み込んでください');
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const jsonData = JSON.parse(e.target.result);
+                this.loadRouteFromJSON(jsonData);
+            } catch (error) {
+                alert('JSONファイルの形式が正しくありません');
+                console.error('JSON parse error:', error);
+            }
+        };
+        reader.readAsText(file);
+        
+        event.target.value = '';
+    }
+    
+    loadRouteFromJSON(data) {
+        if (!data.points || !Array.isArray(data.points) || !data.routeInfo) {
+            alert('ルートJSONファイルの形式が正しくありません');
+            return;
+        }
+        
+        const scaleX = this.canvas.width / this.currentImage.width;
+        const scaleY = this.canvas.height / this.currentImage.height;
+        
+        // Set route info in the input fields
+        if (data.routeInfo.startPoint) {
+            document.getElementById('startPoint').value = data.routeInfo.startPoint;
+        }
+        if (data.routeInfo.endPoint) {
+            document.getElementById('endPoint').value = data.routeInfo.endPoint;
+        }
+        
+        const startPointId = data.routeInfo.startPoint;
+        const endPointId = data.routeInfo.endPoint;
+        
+        data.points.forEach(pointData => {
+            if (pointData.x !== undefined && pointData.y !== undefined) {
+                // Skip if ID matches start or end point IDs
+                if (pointData.id && (pointData.id === startPointId || pointData.id === endPointId)) {
+                    return;
+                }
+                
+                // Create marker point with blue color, size 3, stroke 1
+                const point = {
+                    x: Math.round(pointData.x * scaleX),
+                    y: Math.round(pointData.y * scaleY),
+                    id: pointData.id || '',
+                    isMarker: true
+                };
+                this.points.push(point);
+                this.createInputBox(point, this.points.length - 1);
+            }
+        });
+        
+        this.drawImage();
+        this.updatePointCount();
     }
 }
 
