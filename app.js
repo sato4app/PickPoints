@@ -159,10 +159,10 @@ class PickPoints {
     drawPoint(point) {
         this.ctx.fillStyle = '#ff0000';
         this.ctx.strokeStyle = '#ffffff';
-        this.ctx.lineWidth = 1.2;
+        this.ctx.lineWidth = 1.5;
         
         this.ctx.beginPath();
-        this.ctx.arc(point.x, point.y, 3.6, 0, 2 * Math.PI);
+        this.ctx.arc(point.x, point.y, 4, 0, 2 * Math.PI);
         this.ctx.fill();
         this.ctx.stroke();
     }
@@ -242,7 +242,16 @@ class PickPoints {
         input.style.zIndex = '1000';
         
         input.addEventListener('input', (e) => {
-            this.points[index].id = e.target.value;
+            const value = e.target.value;
+            if (value === 'null') {
+                this.removePoint(index);
+                return;
+            }
+            const uppercaseValue = value.replace(/[a-z]/g, (match) => match.toUpperCase());
+            this.points[index].id = uppercaseValue;
+            if (uppercaseValue !== value) {
+                e.target.value = uppercaseValue;
+            }
         });
         
         document.body.appendChild(input);
@@ -282,6 +291,13 @@ class PickPoints {
             }
         });
         this.inputElements = [];
+    }
+    
+    removePoint(index) {
+        this.points.splice(index, 1);
+        this.clearInputBoxes();
+        this.drawImage();
+        this.updatePointCount();
     }
 }
 
