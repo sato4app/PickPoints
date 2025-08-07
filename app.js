@@ -194,6 +194,8 @@ class PickPoints {
     }
     
     drawPoint(point, color = '#ff0000', radius = 4, strokeWidth = 1.5) {
+        console.log(`drawPoint called: (${point.x}, ${point.y}) color=${color} radius=${radius} stroke=${strokeWidth}`);
+        
         this.ctx.fillStyle = color;
         this.ctx.strokeStyle = '#ffffff';
         this.ctx.lineWidth = strokeWidth;
@@ -202,23 +204,35 @@ class PickPoints {
         this.ctx.arc(point.x, point.y, radius, 0, 2 * Math.PI);
         this.ctx.fill();
         this.ctx.stroke();
+        
+        console.log(`drawPoint completed for (${point.x}, ${point.y})`);
     }
     
     drawAllPoints() {
-        this.points.forEach(point => {
+        console.log('=== Drawing all points ===');
+        console.log('Total points:', this.points.length);
+        
+        this.points.forEach((point, index) => {
             let color = '#ff0000';
             let radius = 4;
             let strokeWidth = 1.5;
             
+            console.log(`Drawing point ${index}:`, point);
+            
             if (this.routeMode && (point.id === this.startPointId || point.id === this.endPointId)) {
                 color = '#0066ff';
+                console.log('  -> Route mode point (blue)');
             } else if (point.isMarker) {
-                // Blue markers from loaded JSON: size 3, stroke 1
-                color = '#0066ff';
-                radius = 3;
-                strokeWidth = 1;
+                // Blue markers from loaded JSON: temporarily make them more visible
+                color = '#00ff00'; // Green for better visibility
+                radius = 8; // Larger radius for better visibility
+                strokeWidth = 3; // Thicker stroke
+                console.log('  -> Marker point (GREEN, radius 8, stroke 3 - for debugging)');
+            } else {
+                console.log('  -> Regular point (red)');
             }
             
+            console.log(`  -> Drawing at (${point.x}, ${point.y}) with color ${color}, radius ${radius}`);
             this.drawPoint(point, color, radius, strokeWidth);
         });
         
