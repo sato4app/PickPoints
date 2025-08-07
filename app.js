@@ -5,6 +5,10 @@ class PickPoints {
         this.points = [];
         this.currentImage = null;
         this.inputElements = [];
+        this.routeMode = false;
+        this.routePoints = [];
+        this.startPointId = '';
+        this.endPointId = '';
         
         this.initializeEventListeners();
     }
@@ -14,6 +18,11 @@ class PickPoints {
         const clearBtn = document.getElementById('clearBtn');
         const exportBtn = document.getElementById('exportBtn');
         const jsonInput = document.getElementById('jsonInput');
+        const startRouteBtn = document.getElementById('startRouteBtn');
+        const endRouteBtn = document.getElementById('endRouteBtn');
+        const exportRouteBtn = document.getElementById('exportRouteBtn');
+        const startPointInput = document.getElementById('startPoint');
+        const endPointInput = document.getElementById('endPoint');
         
         
         imageInput.addEventListener('change', (e) => this.handleImageLoad(e));
@@ -27,6 +36,20 @@ class PickPoints {
             this.exportJSON();
         });
         jsonInput.addEventListener('change', (e) => this.handleJSONLoad(e));
+        startRouteBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.startRouteMode();
+        });
+        endRouteBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.endRouteMode();
+        });
+        exportRouteBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.exportRouteJSON();
+        });
+        startPointInput.addEventListener('input', (e) => this.updateRouteButtons());
+        endPointInput.addEventListener('input', (e) => this.updateRouteButtons());
     }
     
     handleImageLoad(event) {
@@ -141,7 +164,11 @@ class PickPoints {
         const x = (event.clientX - rect.left) * (this.canvas.width / rect.width);
         const y = (event.clientY - rect.top) * (this.canvas.height / rect.height);
         
-        this.addPoint(x, y);
+        if (this.routeMode) {
+            this.addRoutePoint(x, y);
+        } else {
+            this.addPoint(x, y);
+        }
     }
     
     addPoint(x, y) {
@@ -156,8 +183,8 @@ class PickPoints {
         this.updatePointCount();
     }
     
-    drawPoint(point) {
-        this.ctx.fillStyle = '#ff0000';
+    drawPoint(point, color = '#ff0000') {
+        this.ctx.fillStyle = color;
         this.ctx.strokeStyle = '#ffffff';
         this.ctx.lineWidth = 1.5;
         
@@ -168,8 +195,21 @@ class PickPoints {
     }
     
     drawAllPoints() {
-        this.points.forEach(point => this.drawPoint(point));
-        this.redrawInputBoxes();
+        this.points.forEach(point => {
+            let color = '#ff0000';
+            if (this.routeMode && (point.id === this.startPointId || point.id === this.endPointId)) {
+                color = '#0066ff';
+            }
+            this.drawPoint(point, color);
+        });
+        
+        this.routePoints.forEach(point => {
+            this.drawPoint(point, '#ff8800');
+        });
+        
+        if (!this.routeMode) {
+            this.redrawInputBoxes();
+        }
     }
     
     clearPoints() {
@@ -186,6 +226,7 @@ class PickPoints {
     enableControls() {
         document.getElementById('clearBtn').disabled = false;
         document.getElementById('exportBtn').disabled = false;
+        this.updateRouteButtons();
     }
     
     exportJSON() {
@@ -302,6 +343,121 @@ class PickPoints {
         this.clearInputBoxes();
         this.drawImage();
         this.updatePointCount();
+    }
+    
+    updateRouteButtons() {
+        const startPoint = document.getElementById('startPoint').value.trim();
+        const endPoint = document.getElementById('endPoint').value.trim();
+        const hasImage = this.currentImage !== null;
+        
+        document.getElementById('startRouteBtn').disabled = !hasImage || !startPoint || !endPoint || this.routeMode;
+        document.getElementById('endRouteBtn').disabled = !this.routeMode;
+        document.getElementById('exportRouteBtn').disabled = !this.routeMode || this.routePoints.length === 0;
+    }
+    
+    startRouteMode() {
+        this.startPointId = document.getElementById('startPoint').value.trim();
+        this.endPointId = document.getElementById('endPoint').value.trim();
+        
+        if (!this.startPointId || !this.endPointId) {
+            alert('開始ポイントと終了ポイントを入力してください');
+            return;
+        }
+        
+        this.routeMode = true;
+        this.routePoints = [];
+        this.updateWaypointCount();
+        this.hideAllInputBoxes();
+        this.drawImage();
+        this.updateRouteButtons();
+    }
+    
+    endRouteMode() {
+        this.routeMode = false;
+        this.showAllInputBoxes();
+        this.drawImage();
+        this.updateRouteButtons();
+    }
+    
+    updateWaypointCount() {
+        document.getElementById('waypointCount').textContent = this.routePoints.length;
+    }
+    
+    hideAllInputBoxes() {
+        this.inputElements.forEach(input => {
+            if (input && input.style) {
+                input.style.display = 'none';
+            }
+        });
+    }
+    
+    showAllInputBoxes() {
+        this.inputElements.forEach(input => {
+            if (input && input.style) {
+                input.style.display = 'block';
+            }
+        });
+    }
+    
+    exportRouteJSON() {
+        if (this.routePoints.length === 0) {
+            alert('ルートポイントが選択されていません');
+            return;
+        }
+        
+        const startPoint = this.points.find(p => p.id === this.startPointId);
+        const endPoint = this.points.find(p => p.id === this.endPointId);
+        
+        if (!startPoint || !endPoint) {
+            alert('開始ポイントまたは終了ポイントが見つかりません');
+            return;
+        }
+        
+        const routeData = {
+            routeInfo: {
+                startPoint: this.startPointId,
+                endPoint: this.endPointId,
+                waypointCount: this.routePoints.length
+            },
+            imageInfo: {
+                width: this.canvas.width,
+                height: this.canvas.height
+            },
+            points: [
+                { type: 'start', id: this.startPointId, x: startPoint.x, y: startPoint.y },
+                ...this.routePoints.map((point, index) => ({
+                    type: 'waypoint',
+                    index: index + 1,
+                    x: point.x,
+                    y: point.y
+                })),
+                { type: 'end', id: this.endPointId, x: endPoint.x, y: endPoint.y }
+            ],
+            exportedAt: new Date().toISOString()
+        };
+        
+        const jsonString = JSON.stringify(routeData, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `route_${this.startPointId}_to_${this.endPointId}_${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+    
+    addRoutePoint(x, y) {
+        const point = { 
+            x: Math.round(x), 
+            y: Math.round(y)
+        };
+        this.routePoints.push(point);
+        this.drawPoint(point, '#ff8800');
+        this.updateWaypointCount();
+        this.updateRouteButtons();
     }
 }
 

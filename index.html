@@ -37,6 +37,28 @@
                 </div>
                 
                 <div class="point-count">ポイント数: <span id="pointCount">0</span></div>
+                
+                <div class="route-editor">
+                    <h3>ルート編集</h3>
+                    <div class="route-inputs">
+                        <div class="input-group">
+                            <label for="startPoint">開始ポイント:</label>
+                            <input type="text" id="startPoint" maxlength="4" class="route-input">
+                        </div>
+                        <div class="input-group">
+                            <label for="endPoint">終了ポイント:</label>
+                            <input type="text" id="endPoint" maxlength="4" class="route-input">
+                        </div>
+                    </div>
+                    <div class="route-controls">
+                        <button type="button" id="startRouteBtn" class="btn btn-start" disabled>開始</button>
+                        <button type="button" id="endRouteBtn" class="btn btn-end" disabled>終了</button>
+                    </div>
+                    <div class="route-info">
+                        <div class="waypoint-count">中間点数: <span id="waypointCount">0</span></div>
+                        <button type="button" id="exportRouteBtn" class="btn btn-export-route" disabled>JSON出力</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
