@@ -233,7 +233,9 @@ class PickPoints {
     }
     
     updatePointCount() {
-        document.getElementById('pointCount').textContent = this.points.length;
+        // Count only non-marker points (exclude waypoints loaded from JSON)
+        const nonMarkerPoints = this.points.filter(point => !point.isMarker);
+        document.getElementById('pointCount').textContent = nonMarkerPoints.length;
     }
     
     enableControls() {
@@ -280,12 +282,8 @@ class PickPoints {
     }
     
     createInputBox(point, index) {
-        console.log('createInputBox called for point:', point, 'index:', index);
-        console.trace('Call stack:');
-        
         // Skip creating input boxes for marker points
         if (point.isMarker) {
-            console.log('Skipping input box creation for marker point');
             return;
         }
         
