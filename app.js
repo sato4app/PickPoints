@@ -280,6 +280,15 @@ class PickPoints {
     }
     
     createInputBox(point, index) {
+        console.log('createInputBox called for point:', point, 'index:', index);
+        console.trace('Call stack:');
+        
+        // Skip creating input boxes for marker points
+        if (point.isMarker) {
+            console.log('Skipping input box creation for marker point');
+            return;
+        }
+        
         const input = document.createElement('input');
         input.type = 'text';
         input.maxLength = 4;
