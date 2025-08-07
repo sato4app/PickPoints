@@ -555,6 +555,7 @@ class PickPoints {
                 
                 // Create marker point with blue color, size 3, stroke 1
                 // Include waypoints and any other points, even with blank ID
+                // No input box needed for markers
                 const point = {
                     x: Math.round(pointData.x * scaleX),
                     y: Math.round(pointData.y * scaleY),
@@ -562,7 +563,6 @@ class PickPoints {
                     isMarker: true
                 };
                 this.points.push(point);
-                this.createInputBox(point, this.points.length - 1);
             }
         });
         
