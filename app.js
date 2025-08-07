@@ -156,15 +156,20 @@ class PickPoints {
     }
     
     drawImage() {
-        if (!this.currentImage) return;
+        console.log('drawImage() called');
+        if (!this.currentImage) {
+            console.log('No current image, returning');
+            return;
+        }
         
-        
+        console.log('Clearing canvas and redrawing image');
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        
         
         this.ctx.drawImage(this.currentImage, 0, 0, this.canvas.width, this.canvas.height);
         
+        console.log('About to call drawAllPoints()...');
         this.drawAllPoints();
+        console.log('drawImage() completed');
     }
     
     handleCanvasClick(event) {
@@ -583,18 +588,28 @@ class PickPoints {
         const startPointId = data.routeInfo.startPoint;
         const endPointId = data.routeInfo.endPoint;
         
-        data.points.forEach(pointData => {
-            console.log('Processing point:', pointData);
+        console.log('Starting to process points. Total points:', data.points.length);
+        console.log('Start point ID:', startPointId, 'End point ID:', endPointId);
+        
+        let processedCount = 0;
+        let skippedCount = 0;
+        let addedCount = 0;
+        
+        data.points.forEach((pointData, index) => {
+            processedCount++;
+            console.log(`Processing point ${index + 1}/${data.points.length}:`, pointData);
             
             if (pointData.x !== undefined && pointData.y !== undefined) {
                 // Skip start and end points (they should not be registered as markers)
                 if (pointData.type === 'start' || pointData.type === 'end') {
+                    skippedCount++;
                     console.log('Skipping start/end point:', pointData.type);
                     return;
                 }
                 
                 // Skip if ID matches start or end point IDs (but allow blank IDs)
                 if (pointData.id && (pointData.id === startPointId || pointData.id === endPointId)) {
+                    skippedCount++;
                     console.log('Skipping point with matching ID:', pointData.id);
                     return;
                 }
@@ -610,12 +625,18 @@ class PickPoints {
                 };
                 this.points.push(point);
                 this.createInputBox(point, this.points.length - 1);
+                addedCount++;
                 console.log('Added marker point:', point);
             }
         });
         
+        console.log(`Processing complete. Processed: ${processedCount}, Skipped: ${skippedCount}, Added: ${addedCount}`);
+        
+        console.log('About to call drawImage()...');
         this.drawImage();
+        console.log('About to call updatePointCount()...');
         this.updatePointCount();
+        console.log('===== Load Route From JSON Completed =====');
     }
 }
 
