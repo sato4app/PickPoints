@@ -254,6 +254,14 @@ class PickPoints {
             }
         });
         
+        input.addEventListener('blur', (e) => {
+            const value = e.target.value.trim();
+            if (value === '') {
+                this.removePoint(index);
+                return;
+            }
+        });
+        
         document.body.appendChild(input);
         this.inputElements.push(input);
         
