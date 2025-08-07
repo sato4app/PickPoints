@@ -13,6 +13,7 @@ class PickPoints {
         const imageInput = document.getElementById('imageInput');
         const clearBtn = document.getElementById('clearBtn');
         const exportBtn = document.getElementById('exportBtn');
+        const jsonInput = document.getElementById('jsonInput');
         
         
         imageInput.addEventListener('change', (e) => this.handleImageLoad(e));
@@ -25,6 +26,7 @@ class PickPoints {
             e.preventDefault();
             this.exportJSON();
         });
+        jsonInput.addEventListener('change', (e) => this.handleJSONLoad(e));
     }
     
     handleImageLoad(event) {
@@ -49,6 +51,54 @@ class PickPoints {
             img.src = e.target.result;
         };
         reader.readAsDataURL(file);
+    }
+    
+    handleJSONLoad(event) {
+        const file = event.target.files[0];
+        if (!file || !file.type.includes('json')) {
+            alert('JSONファイルを選択してください');
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const jsonData = JSON.parse(e.target.result);
+                this.loadPointsFromJSON(jsonData);
+            } catch (error) {
+                alert('JSONファイルの形式が正しくありません');
+                console.error('JSON parse error:', error);
+            }
+        };
+        reader.readAsText(file);
+    }
+    
+    loadPointsFromJSON(data) {
+        if (!this.currentImage) {
+            alert('先に画像を読み込んでください');
+            return;
+        }
+        
+        if (!data.points || !Array.isArray(data.points)) {
+            alert('JSONファイルにポイントデータが見つかりません');
+            return;
+        }
+        
+        data.points.forEach(pointData => {
+            if (pointData.x !== undefined && pointData.y !== undefined) {
+                const point = {
+                    x: pointData.x,
+                    y: pointData.y,
+                    id: pointData.id || ''
+                };
+                this.points.push(point);
+            }
+        });
+        
+        this.drawImage();
+        this.updatePointCount();
+        
+        event.target.value = '';
     }
     
     setupCanvas() {
