@@ -25,7 +25,6 @@ class PickPoints {
         const startPointInput = document.getElementById('startPoint');
         const endPointInput = document.getElementById('endPoint');
         
-        console.log('Route JSON input element:', routeJsonInput);
         
         
         imageInput.addEventListener('change', (e) => this.handleImageLoad(e));
@@ -51,10 +50,7 @@ class PickPoints {
             e.preventDefault();
             this.exportRouteJSON();
         });
-        routeJsonInput.addEventListener('change', (e) => {
-            console.log('Route JSON input change event triggered');
-            this.handleRouteJSONLoad(e);
-        });
+        routeJsonInput.addEventListener('change', (e) => this.handleRouteJSONLoad(e));
         startPointInput.addEventListener('input', (e) => this.updateRouteButtons());
         endPointInput.addEventListener('input', (e) => this.updateRouteButtons());
     }
@@ -156,20 +152,13 @@ class PickPoints {
     }
     
     drawImage() {
-        console.log('drawImage() called');
-        if (!this.currentImage) {
-            console.log('No current image, returning');
-            return;
-        }
+        if (!this.currentImage) return;
         
-        console.log('Clearing canvas and redrawing image');
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
         this.ctx.drawImage(this.currentImage, 0, 0, this.canvas.width, this.canvas.height);
         
-        console.log('About to call drawAllPoints()...');
         this.drawAllPoints();
-        console.log('drawImage() completed');
     }
     
     handleCanvasClick(event) {
@@ -199,8 +188,6 @@ class PickPoints {
     }
     
     drawPoint(point, color = '#ff0000', radius = 4, strokeWidth = 1.5) {
-        console.log(`drawPoint called: (${point.x}, ${point.y}) color=${color} radius=${radius} stroke=${strokeWidth}`);
-        
         this.ctx.fillStyle = color;
         this.ctx.strokeStyle = '#ffffff';
         this.ctx.lineWidth = strokeWidth;
@@ -209,35 +196,23 @@ class PickPoints {
         this.ctx.arc(point.x, point.y, radius, 0, 2 * Math.PI);
         this.ctx.fill();
         this.ctx.stroke();
-        
-        console.log(`drawPoint completed for (${point.x}, ${point.y})`);
     }
     
     drawAllPoints() {
-        console.log('=== Drawing all points ===');
-        console.log('Total points:', this.points.length);
-        
         this.points.forEach((point, index) => {
             let color = '#ff0000';
             let radius = 4;
             let strokeWidth = 1.5;
             
-            console.log(`Drawing point ${index}:`, point);
-            
             if (this.routeMode && (point.id === this.startPointId || point.id === this.endPointId)) {
                 color = '#0066ff';
-                console.log('  -> Route mode point (blue)');
             } else if (point.isMarker) {
-                // Blue markers from loaded JSON: temporarily make them more visible
-                color = '#00ff00'; // Green for better visibility
-                radius = 8; // Larger radius for better visibility
-                strokeWidth = 3; // Thicker stroke
-                console.log('  -> Marker point (GREEN, radius 8, stroke 3 - for debugging)');
-            } else {
-                console.log('  -> Regular point (red)');
+                // Blue markers from loaded JSON: size 3, stroke 1
+                color = '#0066ff';
+                radius = 3;
+                strokeWidth = 1;
             }
             
-            console.log(`  -> Drawing at (${point.x}, ${point.y}) with color ${color}, radius ${radius}`);
             this.drawPoint(point, color, radius, strokeWidth);
         });
         
@@ -327,7 +302,8 @@ class PickPoints {
         
         input.addEventListener('blur', (e) => {
             const value = e.target.value.trim();
-            if (value === '') {
+            // Don't remove marker points (loaded from JSON) even if ID is blank
+            if (value === '' && !this.points[index].isMarker) {
                 this.removePoint(index);
                 return;
             }
@@ -516,57 +492,34 @@ class PickPoints {
     }
     
     handleRouteJSONLoad(event) {
-        console.log('===== Route JSON Load Started =====');
-        console.log('Event:', event);
-        console.log('Target:', event.target);
-        console.log('Files:', event.target.files);
-        
         const file = event.target.files[0];
-        console.log('Selected file:', file);
-        
         if (!file || !file.type.includes('json')) {
-            console.log('File validation failed:', file ? file.type : 'No file');
             alert('JSONファイルを選択してください');
             return;
         }
         
         if (!this.currentImage) {
-            console.log('No image loaded');
             alert('先に画像を読み込んでください');
             return;
         }
         
-        console.log('Starting file read...');
         const reader = new FileReader();
         reader.onload = (e) => {
-            console.log('File read completed');
-            console.log('File content:', e.target.result);
             try {
                 const jsonData = JSON.parse(e.target.result);
-                console.log('JSON parsed successfully:', jsonData);
                 this.loadRouteFromJSON(jsonData);
             } catch (error) {
-                console.error('JSON parse error:', error);
                 alert('JSONファイルの形式が正しくありません');
+                console.error('JSON parse error:', error);
             }
         };
         reader.readAsText(file);
         
         event.target.value = '';
-        console.log('===== Route JSON Load Process Initiated =====');
     }
     
     loadRouteFromJSON(data) {
-        console.log('===== Load Route From JSON Started =====');
-        console.log('Received data:', data);
-        console.log('Data points:', data.points);
-        console.log('Data routeInfo:', data.routeInfo);
-        
         if (!data.points || !Array.isArray(data.points) || !data.routeInfo) {
-            console.log('Data validation failed');
-            console.log('Has points:', !!data.points);
-            console.log('Is points array:', Array.isArray(data.points));
-            console.log('Has routeInfo:', !!data.routeInfo);
             alert('ルートJSONファイルの形式が正しくありません');
             return;
         }
@@ -588,35 +541,20 @@ class PickPoints {
         const startPointId = data.routeInfo.startPoint;
         const endPointId = data.routeInfo.endPoint;
         
-        console.log('Starting to process points. Total points:', data.points.length);
-        console.log('Start point ID:', startPointId, 'End point ID:', endPointId);
-        
-        let processedCount = 0;
-        let skippedCount = 0;
-        let addedCount = 0;
-        
-        data.points.forEach((pointData, index) => {
-            processedCount++;
-            console.log(`Processing point ${index + 1}/${data.points.length}:`, pointData);
-            
+        data.points.forEach(pointData => {
             if (pointData.x !== undefined && pointData.y !== undefined) {
                 // Skip start and end points (they should not be registered as markers)
                 if (pointData.type === 'start' || pointData.type === 'end') {
-                    skippedCount++;
-                    console.log('Skipping start/end point:', pointData.type);
                     return;
                 }
                 
                 // Skip if ID matches start or end point IDs (but allow blank IDs)
                 if (pointData.id && (pointData.id === startPointId || pointData.id === endPointId)) {
-                    skippedCount++;
-                    console.log('Skipping point with matching ID:', pointData.id);
                     return;
                 }
                 
                 // Create marker point with blue color, size 3, stroke 1
                 // Include waypoints and any other points, even with blank ID
-                console.log('Creating marker for point:', pointData);
                 const point = {
                     x: Math.round(pointData.x * scaleX),
                     y: Math.round(pointData.y * scaleY),
@@ -625,18 +563,11 @@ class PickPoints {
                 };
                 this.points.push(point);
                 this.createInputBox(point, this.points.length - 1);
-                addedCount++;
-                console.log('Added marker point:', point);
             }
         });
         
-        console.log(`Processing complete. Processed: ${processedCount}, Skipped: ${skippedCount}, Added: ${addedCount}`);
-        
-        console.log('About to call drawImage()...');
         this.drawImage();
-        console.log('About to call updatePointCount()...');
         this.updatePointCount();
-        console.log('===== Load Route From JSON Completed =====');
     }
 }
 
