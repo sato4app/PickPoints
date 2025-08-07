@@ -109,11 +109,14 @@ class PickPoints {
             return;
         }
         
+        const scaleX = this.canvas.width / this.currentImage.width;
+        const scaleY = this.canvas.height / this.currentImage.height;
+        
         data.points.forEach(pointData => {
             if (pointData.x !== undefined && pointData.y !== undefined) {
                 const point = {
-                    x: pointData.x,
-                    y: pointData.y,
+                    x: Math.round(pointData.x * scaleX),
+                    y: Math.round(pointData.y * scaleY),
                     id: pointData.id || ''
                 };
                 this.points.push(point);
@@ -235,17 +238,20 @@ class PickPoints {
             return;
         }
         
+        const scaleX = this.currentImage.width / this.canvas.width;
+        const scaleY = this.currentImage.height / this.canvas.height;
+        
         const data = {
             totalPoints: this.points.length,
             imageInfo: {
-                width: this.canvas.width,
-                height: this.canvas.height
+                width: this.currentImage.width,
+                height: this.currentImage.height
             },
             points: this.points.map((point, index) => ({
                 index: index + 1,
                 id: point.id || '',
-                x: point.x,
-                y: point.y
+                x: Math.round(point.x * scaleX),
+                y: Math.round(point.y * scaleY)
             })),
             exportedAt: new Date().toISOString()
         };
@@ -422,6 +428,9 @@ class PickPoints {
             return;
         }
         
+        const scaleX = this.currentImage.width / this.canvas.width;
+        const scaleY = this.currentImage.height / this.canvas.height;
+        
         const routeData = {
             routeInfo: {
                 startPoint: this.startPointId,
@@ -429,18 +438,18 @@ class PickPoints {
                 waypointCount: this.routePoints.length
             },
             imageInfo: {
-                width: this.canvas.width,
-                height: this.canvas.height
+                width: this.currentImage.width,
+                height: this.currentImage.height
             },
             points: [
-                { type: 'start', id: this.startPointId, x: startPoint.x, y: startPoint.y },
+                { type: 'start', id: this.startPointId, x: Math.round(startPoint.x * scaleX), y: Math.round(startPoint.y * scaleY) },
                 ...this.routePoints.map((point, index) => ({
                     type: 'waypoint',
                     index: index + 1,
-                    x: point.x,
-                    y: point.y
+                    x: Math.round(point.x * scaleX),
+                    y: Math.round(point.y * scaleY)
                 })),
-                { type: 'end', id: this.endPointId, x: endPoint.x, y: endPoint.y }
+                { type: 'end', id: this.endPointId, x: Math.round(endPoint.x * scaleX), y: Math.round(endPoint.y * scaleY) }
             ],
             exportedAt: new Date().toISOString()
         };
