@@ -346,6 +346,10 @@ class PickPoints {
         this.clearInputBoxes();
         setTimeout(() => {
             this.points.forEach((point, index) => {
+                // Skip creating input boxes for marker points
+                if (point.isMarker) {
+                    return;
+                }
                 this.createInputBox(point, index);
                 const input = this.inputElements[this.inputElements.length - 1];
                 if (input) {
