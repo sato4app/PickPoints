@@ -264,23 +264,16 @@ class PickPoints {
     }
     
     createInputBox(point, index) {
-        const rect = this.canvas.getBoundingClientRect();
-        const scaleX = rect.width / this.canvas.width;
-        const scaleY = rect.height / this.canvas.height;
-        
         const input = document.createElement('input');
         input.type = 'text';
         input.maxLength = 4;
         input.className = 'point-id-input';
         input.placeholder = 'ID';
         
-        const inputX = this.findOptimalInputPosition(point.x, point.y, scaleX, rect.left);
-        const inputY = point.y * scaleY + rect.top - 15;
-        
         input.style.position = 'absolute';
-        input.style.left = inputX + 'px';
-        input.style.top = inputY + 'px';
         input.style.zIndex = '1000';
+        
+        this.positionInputBox(input, point);
         
         input.addEventListener('input', (e) => {
             const value = e.target.value;
@@ -305,6 +298,18 @@ class PickPoints {
         setTimeout(() => input.focus(), 100);
     }
     
+    positionInputBox(input, point) {
+        const rect = this.canvas.getBoundingClientRect();
+        const scaleX = rect.width / this.canvas.width;
+        const scaleY = rect.height / this.canvas.height;
+        
+        const inputX = this.findOptimalInputPosition(point.x, point.y, scaleX, rect.left);
+        const inputY = point.y * scaleY + rect.top - 15;
+        
+        input.style.left = inputX + 'px';
+        input.style.top = inputY + 'px';
+    }
+    
     findOptimalInputPosition(pointX, pointY, scaleX, canvasLeft) {
         const inputWidth = 50;
         const margin = 10;
@@ -322,11 +327,15 @@ class PickPoints {
     
     redrawInputBoxes() {
         this.clearInputBoxes();
-        this.points.forEach((point, index) => {
-            this.createInputBox(point, index);
-            const input = this.inputElements[this.inputElements.length - 1];
-            input.value = point.id || '';
-        });
+        setTimeout(() => {
+            this.points.forEach((point, index) => {
+                this.createInputBox(point, index);
+                const input = this.inputElements[this.inputElements.length - 1];
+                if (input) {
+                    input.value = point.id || '';
+                }
+            });
+        }, 10);
     }
     
     clearInputBoxes() {
