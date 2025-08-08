@@ -331,7 +331,7 @@ class PickPoints {
         input.addEventListener('blur', (e) => {
             const value = e.target.value.trim();
             // In point editing mode, ID names are mandatory - remove points with blank IDs
-            if (value === '' && !this.points[index].isMarker) {
+            if (value === '' && this.currentEditingMode === 'point') {
                 this.removePoint(index);
                 return;
             }
@@ -514,12 +514,10 @@ class PickPoints {
         const scaleX = this.canvas.width / this.currentImage.width;
         const scaleY = this.canvas.height / this.currentImage.height;
         
-        // Set route info
-        if (data.routeInfo.waypointCount !== undefined) {
-            document.getElementById('waypointCount').textContent = data.routeInfo.waypointCount;
-        }
+        // Clear existing route data first
+        this.routePoints = [];
         
-        // Set start and end point IDs
+        // Set start and end point IDs from routeInfo
         this.startPointId = data.routeInfo.startPointId || '';
         this.endPointId = data.routeInfo.endPointId || '';
         document.getElementById('startPointInput').value = this.startPointId;
@@ -536,8 +534,8 @@ class PickPoints {
             }
         });
         
+        this.updateWaypointCount();
         this.drawImage();
-        this.updatePointCount();
         
         // Remove focus from any input elements after route JSON load
         if (document.activeElement && document.activeElement.blur) {
