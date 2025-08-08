@@ -563,8 +563,8 @@ class PickPoints {
         // ルートJSONデータ構造を作成
         const routeData = {
             routeInfo: {
-                startPointId: this.startPointId || '',
-                endPointId: this.endPointId || '',
+                startPoint: this.startPointId || '',
+                endPoint: this.endPointId || '',
                 waypointCount: this.routePoints.length
             },
             imageInfo: {
@@ -663,9 +663,9 @@ class PickPoints {
         this.routePoints = [];
         
         // 開始・終了ポイントIDを設定
-        console.log('Debug - loadRouteFromJSON: JSONから読み込む値 - startPointId:', data.routeInfo.startPointId, 'endPointId:', data.routeInfo.endPointId);
-        this.startPointId = data.routeInfo.startPointId || '';
-        this.endPointId = data.routeInfo.endPointId || '';
+        console.log('Debug - loadRouteFromJSON: JSONから読み込む値 - startPoint:', data.routeInfo.startPoint, 'endPoint:', data.routeInfo.endPoint);
+        this.startPointId = data.routeInfo.startPoint || '';
+        this.endPointId = data.routeInfo.endPoint || '';
         console.log('Debug - loadRouteFromJSON: 設定後の値 - this.startPointId:', this.startPointId, 'this.endPointId:', this.endPointId);
         document.getElementById('startPointInput').value = this.startPointId;
         document.getElementById('endPointInput').value = this.endPointId;
