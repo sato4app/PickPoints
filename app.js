@@ -333,13 +333,15 @@ class PickPoints {
         
         input.addEventListener('blur', (e) => {
             const value = e.target.value.trim();
-            console.log('Debug - blur event: value =', value, 'currentEditingMode =', this.currentEditingMode);
+            console.log('Debug - blur event: value =', value, 'currentEditingMode =', this.currentEditingMode, 'index =', index);
             // In point editing mode, ID names are mandatory - remove points with blank IDs
             if (value === '' && this.currentEditingMode === 'point') {
+                console.log('Debug - removing point at index', index, 'because value is blank');
                 this.removePoint(index);
                 return;
             }
             this.points[index].id = value;
+            console.log('Debug - set point id at index', index, 'to', value);
         });
         
         document.body.appendChild(input);
@@ -402,10 +404,12 @@ class PickPoints {
     }
     
     removePoint(index) {
+        console.log('Debug - removePoint: removing point at index', index, 'current points count:', this.points.length);
         this.points.splice(index, 1);
         this.clearInputBoxes();
         this.drawImage();
         this.updatePointCount();
+        console.log('Debug - removePoint: after removal, points count:', this.points.length);
     }
     
     
