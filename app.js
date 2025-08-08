@@ -5,7 +5,6 @@ class PickPoints {
         this.points = [];
         this.currentImage = null;
         this.inputElements = [];
-        this.routeMode = false;
         this.routePoints = [];
         this.startPointId = '';
         this.endPointId = '';
@@ -27,45 +26,47 @@ class PickPoints {
         const startPointInput = document.getElementById('startPointInput');
         const endPointInput = document.getElementById('endPointInput');
         
-        
-        
         imageInput.addEventListener('change', (e) => this.handleImageLoad(e));
         this.canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
+        
         clearBtn.addEventListener('click', (e) => {
             e.preventDefault();
             this.clearPoints();
         });
+        
         exportBtn.addEventListener('click', (e) => {
             e.preventDefault();
             this.exportJSON();
         });
+        
         jsonInput.addEventListener('change', (e) => this.handleJSONLoad(e));
+        
         clearRouteBtn.addEventListener('click', (e) => {
             e.preventDefault();
             this.clearRoute();
         });
+        
         exportRouteBtn.addEventListener('click', (e) => {
             e.preventDefault();
             this.exportRouteJSON();
         });
+        
         routeJsonInput.addEventListener('change', (e) => this.handleRouteJSONLoad(e));
         
-        // Start and End point input fields
         startPointInput.addEventListener('input', (e) => {
             const value = e.target.value.replace(/[a-z]/g, (match) => match.toUpperCase());
             this.startPointId = value;
             e.target.value = value;
-            this.drawImage(); // Redraw to update point colors
+            this.drawImage();
         });
         
         endPointInput.addEventListener('input', (e) => {
             const value = e.target.value.replace(/[a-z]/g, (match) => match.toUpperCase());
             this.endPointId = value;
             e.target.value = value;
-            this.drawImage(); // Redraw to update point colors
+            this.drawImage();
         });
         
-        // Layout radio buttons
         const layoutRadios = document.querySelectorAll('input[name="layout"]');
         layoutRadios.forEach(radio => {
             radio.addEventListener('change', (e) => {
@@ -75,7 +76,6 @@ class PickPoints {
             });
         });
         
-        // Editing mode radio buttons
         const editingModeRadios = document.querySelectorAll('input[name="editingMode"]');
         editingModeRadios.forEach(radio => {
             radio.addEventListener('change', (e) => {
@@ -101,7 +101,6 @@ class PickPoints {
                 this.setupCanvas();
                 this.drawImage();
                 this.enableControls();
-                // Reset to point editing mode when loading new image
                 this.setEditingMode('point');
             };
             img.onerror = () => {
@@ -154,7 +153,7 @@ class PickPoints {
                     x: Math.round(pointData.x * scaleX),
                     y: Math.round(pointData.y * scaleY),
                     id: pointData.id || '',
-                    isMarker: pointData.isMarker || false  // Preserve marker status from JSON, default to false
+                    isMarker: pointData.isMarker || false
                 };
                 this.points.push(point);
                 this.createInputBox(point, this.points.length - 1);
@@ -164,20 +163,16 @@ class PickPoints {
         this.drawImage();
         this.updatePointCount();
         
-        // Remove focus from any input elements after JSON load
         if (document.activeElement && document.activeElement.blur) {
             document.activeElement.blur();
         }
     }
     
-    
     drawImage() {
         if (!this.currentImage) return;
         
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        
         this.ctx.drawImage(this.currentImage, 0, 0, this.canvas.width, this.canvas.height);
-        
         this.drawAllPoints();
     }
     
@@ -200,9 +195,8 @@ class PickPoints {
             x: Math.round(x), 
             y: Math.round(y),
             id: '',
-            isMarker: false  // User-added points are never markers, even with blank IDs
+            isMarker: false
         };
-        console.log('Debug - addPoint: currentEditingMode =', this.currentEditingMode, 'point =', point);
         this.points.push(point);
         this.drawPoint(point);
         this.createInputBox(point, this.points.length - 1);
@@ -221,7 +215,7 @@ class PickPoints {
     }
     
     drawAllPoints() {
-        this.points.forEach((point, index) => {
+        this.points.forEach((point) => {
             let color = '#ff0000';
             let radius = 4;
             let strokeWidth = 1.5;
@@ -229,7 +223,6 @@ class PickPoints {
             if (this.routeMode && (point.id === this.startPointId || point.id === this.endPointId)) {
                 color = '#0066ff';
             } else if (point.isMarker) {
-                // Blue markers from loaded JSON: size 3, stroke 1
                 color = '#0066ff';
                 radius = 3;
                 strokeWidth = 1;
@@ -255,7 +248,6 @@ class PickPoints {
     }
     
     updatePointCount() {
-        // Count all user-added points (exclude only waypoints loaded from JSON marked as isMarker)
         const userPoints = this.points.filter(point => !point.isMarker);
         document.getElementById('pointCount').textContent = userPoints.length;
     }
@@ -290,24 +282,11 @@ class PickPoints {
             exportedAt: new Date().toISOString()
         };
         
-        const jsonString = JSON.stringify(data, null, 2);
-        const blob = new Blob([jsonString], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `pickpoints_${new Date().toISOString().slice(0, 10)}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        this.downloadJSON(data, `pickpoints_${new Date().toISOString().slice(0, 10)}.json`);
     }
     
     createInputBox(point, index) {
-        console.log('Debug - createInputBox: point =', point, 'index =', index, 'isMarker =', point.isMarker);
-        // Skip creating input boxes for marker points
         if (point.isMarker) {
-            console.log('Debug - createInputBox: skipping marker point');
             return;
         }
         
@@ -316,7 +295,6 @@ class PickPoints {
         input.maxLength = 4;
         input.className = 'point-id-input';
         input.placeholder = 'ID';
-        
         input.style.position = 'absolute';
         input.style.zIndex = '1000';
         
@@ -333,29 +311,22 @@ class PickPoints {
         
         input.addEventListener('blur', (e) => {
             const value = e.target.value.trim();
-            // Find the actual current index of this point
             const currentIndex = this.points.findIndex(p => p.x === point.x && p.y === point.y);
-            console.log('Debug - blur event: value =', value, 'currentEditingMode =', this.currentEditingMode, 'originalIndex =', index, 'currentIndex =', currentIndex);
-            // In point editing mode, ID names are mandatory - remove points with blank IDs
+            
             if (value === '' && this.currentEditingMode === 'point') {
-                console.log('Debug - removing point at currentIndex', currentIndex, 'because value is blank');
                 if (currentIndex >= 0) {
                     this.removePoint(currentIndex);
                 }
                 return;
             }
+            
             if (currentIndex >= 0) {
                 this.points[currentIndex].id = value;
-                console.log('Debug - set point id at currentIndex', currentIndex, 'to', value);
             }
         });
         
         document.body.appendChild(input);
         this.inputElements.push(input);
-        console.log('Debug - createInputBox: input element added to DOM, total inputs:', this.inputElements.length);
-        console.log('Debug - createInputBox: input element:', input, 'has blur listener:', input.onblur !== null);
-        
-        // Don't auto-focus input boxes (removed setTimeout focus)
     }
     
     positionInputBox(input, point) {
@@ -389,7 +360,6 @@ class PickPoints {
         this.clearInputBoxes();
         setTimeout(() => {
             this.points.forEach((point, index) => {
-                // Skip creating input boxes for marker points
                 if (point.isMarker) {
                     return;
                 }
@@ -412,36 +382,27 @@ class PickPoints {
     }
     
     removePoint(index) {
-        console.log('Debug - removePoint: removing point at index', index, 'current points count:', this.points.length);
         this.points.splice(index, 1);
         this.clearInputBoxes();
         this.drawImage();
         this.updatePointCount();
-        console.log('Debug - removePoint: after removal, points count:', this.points.length);
     }
-    
-    
-    
     
     updateWaypointCount() {
         document.getElementById('waypointCount').textContent = this.routePoints.length;
     }
     
     clearRoute() {
-        // Clear route points and update count
         this.routePoints = [];
         this.updateWaypointCount();
         
-        // Clear start and end point IDs
         this.startPointId = '';
         this.endPointId = '';
         document.getElementById('startPointInput').value = '';
         document.getElementById('endPointInput').value = '';
         
-        // Redraw image to clear route markers
         this.drawImage();
     }
-    
     
     exportRouteJSON() {
         if (this.routePoints.length === 0) {
@@ -471,17 +432,7 @@ class PickPoints {
             exportedAt: new Date().toISOString()
         };
         
-        const jsonString = JSON.stringify(routeData, null, 2);
-        const blob = new Blob([jsonString], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `route_${new Date().toISOString().slice(0, 10)}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        this.downloadJSON(routeData, `route_${new Date().toISOString().slice(0, 10)}.json`);
     }
     
     addRoutePoint(x, y) {
@@ -490,7 +441,7 @@ class PickPoints {
             y: Math.round(y)
         };
         this.routePoints.push(point);
-        this.drawPoint(point, '#0066ff'); // Changed to blue color
+        this.drawPoint(point, '#0066ff');
         this.updateWaypointCount();
     }
     
@@ -522,30 +473,23 @@ class PickPoints {
     }
     
     loadRouteFromJSON(data) {
-        console.log('Debug - loadRouteFromJSON: received data =', data);
         if (!data.points || !Array.isArray(data.points) || !data.routeInfo) {
             alert('ルートJSONファイルの形式が正しくありません');
             return;
         }
         
-        console.log('Debug - loadRouteFromJSON: routeInfo =', data.routeInfo);
         const scaleX = this.canvas.width / this.currentImage.width;
         const scaleY = this.canvas.height / this.currentImage.height;
         
-        // Clear existing route data first
         this.routePoints = [];
         
-        // Set start and end point IDs from routeInfo
         this.startPointId = data.routeInfo.startPointId || '';
         this.endPointId = data.routeInfo.endPointId || '';
-        console.log('Debug - loadRouteFromJSON: startPointId =', this.startPointId, 'endPointId =', this.endPointId);
-        console.log('Debug - loadRouteFromJSON: from JSON - startPointId =', data.routeInfo.startPointId, 'endPointId =', data.routeInfo.endPointId);
         document.getElementById('startPointInput').value = this.startPointId;
         document.getElementById('endPointInput').value = this.endPointId;
         
         data.points.forEach(pointData => {
             if (pointData.x !== undefined && pointData.y !== undefined && pointData.type === 'waypoint') {
-                // Add waypoints to routePoints array
                 const point = {
                     x: Math.round(pointData.x * scaleX),
                     y: Math.round(pointData.y * scaleY)
@@ -557,17 +501,29 @@ class PickPoints {
         this.updateWaypointCount();
         this.drawImage();
         
-        // Remove focus from any input elements after route JSON load
         if (document.activeElement && document.activeElement.blur) {
             document.activeElement.blur();
         }
+    }
+    
+    downloadJSON(data, filename) {
+        const jsonString = JSON.stringify(data, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     }
     
     initializeLayoutManager() {
         this.updateLayoutDisplay();
         this.updateEditingModeDisplay();
         
-        // Handle window resize for responsive canvas sizing
         window.addEventListener('resize', () => {
             if (this.currentImage) {
                 setTimeout(() => {
@@ -595,8 +551,7 @@ class PickPoints {
             routeEditor.style.display = 'block';
         }
         
-        // Update radio button to match current editing mode
-        const radio = document.querySelector(`input[name=\"editingMode\"][value=\"${this.currentEditingMode}\"]`);
+        const radio = document.querySelector(`input[name="editingMode"][value="${this.currentEditingMode}"]`);
         if (radio) {
             radio.checked = true;
         }
@@ -618,7 +573,6 @@ class PickPoints {
         const mainContent = document.querySelector('.main-content');
         mainContent.setAttribute('data-layout', this.currentLayout);
         
-        // Update radio button to match current layout
         const radio = document.querySelector(`input[name="layout"][value="${this.currentLayout}"]`);
         if (radio) {
             radio.checked = true;
