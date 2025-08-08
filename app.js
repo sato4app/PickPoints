@@ -21,13 +21,9 @@ class PickPoints {
         const clearBtn = document.getElementById('clearBtn');
         const exportBtn = document.getElementById('exportBtn');
         const jsonInput = document.getElementById('jsonInput');
-        const startRouteBtn = document.getElementById('startRouteBtn');
-        const endRouteBtn = document.getElementById('endRouteBtn');
         const clearRouteBtn = document.getElementById('clearRouteBtn');
         const exportRouteBtn = document.getElementById('exportRouteBtn');
         const routeJsonInput = document.getElementById('routeJsonInput');
-        const startPointInput = document.getElementById('startPoint');
-        const endPointInput = document.getElementById('endPoint');
         
         
         
@@ -42,14 +38,6 @@ class PickPoints {
             this.exportJSON();
         });
         jsonInput.addEventListener('change', (e) => this.handleJSONLoad(e));
-        startRouteBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            this.startRouteMode();
-        });
-        endRouteBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            this.endRouteMode();
-        });
         clearRouteBtn.addEventListener('click', (e) => {
             e.preventDefault();
             this.clearRoute();
@@ -59,8 +47,6 @@ class PickPoints {
             this.exportRouteJSON();
         });
         routeJsonInput.addEventListener('change', (e) => this.handleRouteJSONLoad(e));
-        startPointInput.addEventListener('input', (e) => this.updateRouteButtons());
-        endPointInput.addEventListener('input', (e) => this.updateRouteButtons());
         
         // Layout radio buttons
         const layoutRadios = document.querySelectorAll('input[name="layout"]');
@@ -184,7 +170,7 @@ class PickPoints {
         const x = (event.clientX - rect.left) * (this.canvas.width / rect.width);
         const y = (event.clientY - rect.top) * (this.canvas.height / rect.height);
         
-        if (this.currentEditingMode === 'route' && this.routeMode) {
+        if (this.currentEditingMode === 'route') {
             this.addRoutePoint(x, y);
         } else if (this.currentEditingMode === 'point') {
             this.addPoint(x, y);
@@ -233,10 +219,10 @@ class PickPoints {
         });
         
         this.routePoints.forEach(point => {
-            this.drawPoint(point, '#ff8800');
+            this.drawPoint(point, '#0066ff');
         });
         
-        if (!this.routeMode) {
+        if (this.currentEditingMode === 'point') {
             this.redrawInputBoxes();
         }
     }
@@ -257,7 +243,6 @@ class PickPoints {
     enableControls() {
         document.getElementById('clearBtn').disabled = false;
         document.getElementById('exportBtn').disabled = false;
-        this.updateRouteButtons();
     }
     
     exportJSON() {
@@ -398,99 +383,26 @@ class PickPoints {
         this.updatePointCount();
     }
     
-    updateRouteButtons() {
-        const startPoint = document.getElementById('startPoint').value.trim();
-        const endPoint = document.getElementById('endPoint').value.trim();
-        const hasImage = this.currentImage !== null;
-        
-        document.getElementById('startRouteBtn').disabled = !hasImage || !startPoint || !endPoint || this.routeMode;
-        document.getElementById('endRouteBtn').disabled = !this.routeMode;
-        document.getElementById('clearRouteBtn').disabled = !this.routeMode;
-        document.getElementById('exportRouteBtn').disabled = !this.routeMode || this.routePoints.length === 0;
-    }
     
-    startRouteMode() {
-        this.startPointId = document.getElementById('startPoint').value.trim();
-        this.endPointId = document.getElementById('endPoint').value.trim();
-        
-        if (!this.startPointId || !this.endPointId) {
-            alert('開始ポイントと終了ポイントを入力してください');
-            return;
-        }
-        
-        this.routeMode = true;
-        this.routePoints = [];
-        this.updateWaypointCount();
-        this.hideAllInputBoxes();
-        this.drawImage();
-        this.updateRouteButtons();
-    }
     
-    endRouteMode() {
-        this.routeMode = false;
-        this.showAllInputBoxes();
-        this.drawImage();
-        this.updateRouteButtons();
-    }
     
     updateWaypointCount() {
         document.getElementById('waypointCount').textContent = this.routePoints.length;
     }
     
     clearRoute() {
-        // Clear start and end point inputs
-        document.getElementById('startPoint').value = '';
-        document.getElementById('endPoint').value = '';
-        
         // Clear route points and update count
         this.routePoints = [];
         this.updateWaypointCount();
         
-        // Clear start and end point IDs
-        this.startPointId = '';
-        this.endPointId = '';
-        
-        // End route mode if active
-        if (this.routeMode) {
-            this.endRouteMode();
-        }
-        
         // Redraw image to clear route markers
         this.drawImage();
-        
-        // Update button states
-        this.updateRouteButtons();
     }
     
-    hideAllInputBoxes() {
-        this.inputElements.forEach(input => {
-            if (input && input.style) {
-                input.style.display = 'none';
-            }
-        });
-    }
-    
-    showAllInputBoxes() {
-        this.inputElements.forEach(input => {
-            if (input && input.style) {
-                input.style.display = 'block';
-            }
-        });
-        // Redraw input boxes to ensure they are positioned correctly
-        this.redrawInputBoxes();
-    }
     
     exportRouteJSON() {
         if (this.routePoints.length === 0) {
             alert('ルートポイントが選択されていません');
-            return;
-        }
-        
-        const startPoint = this.points.find(p => p.id === this.startPointId);
-        const endPoint = this.points.find(p => p.id === this.endPointId);
-        
-        if (!startPoint || !endPoint) {
-            alert('開始ポイントまたは終了ポイントが見つかりません');
             return;
         }
         
@@ -499,24 +411,18 @@ class PickPoints {
         
         const routeData = {
             routeInfo: {
-                startPoint: this.startPointId,
-                endPoint: this.endPointId,
                 waypointCount: this.routePoints.length
             },
             imageInfo: {
                 width: this.currentImage.width,
                 height: this.currentImage.height
             },
-            points: [
-                { type: 'start', id: this.startPointId, x: Math.round(startPoint.x * scaleX), y: Math.round(startPoint.y * scaleY) },
-                ...this.routePoints.map((point, index) => ({
-                    type: 'waypoint',
-                    index: index + 1,
-                    x: Math.round(point.x * scaleX),
-                    y: Math.round(point.y * scaleY)
-                })),
-                { type: 'end', id: this.endPointId, x: Math.round(endPoint.x * scaleX), y: Math.round(endPoint.y * scaleY) }
-            ],
+            points: this.routePoints.map((point, index) => ({
+                type: 'waypoint',
+                index: index + 1,
+                x: Math.round(point.x * scaleX),
+                y: Math.round(point.y * scaleY)
+            })),
             exportedAt: new Date().toISOString()
         };
         
@@ -526,7 +432,7 @@ class PickPoints {
         
         const a = document.createElement('a');
         a.href = url;
-        a.download = `route_${this.startPointId}_to_${this.endPointId}_${new Date().toISOString().slice(0, 10)}.json`;
+        a.download = `route_${new Date().toISOString().slice(0, 10)}.json`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -539,9 +445,8 @@ class PickPoints {
             y: Math.round(y)
         };
         this.routePoints.push(point);
-        this.drawPoint(point, '#ff8800');
+        this.drawPoint(point, '#0066ff'); // Changed to blue color
         this.updateWaypointCount();
-        this.updateRouteButtons();
     }
     
     handleRouteJSONLoad(event) {
@@ -580,42 +485,19 @@ class PickPoints {
         const scaleX = this.canvas.width / this.currentImage.width;
         const scaleY = this.canvas.height / this.currentImage.height;
         
-        // Set route info in the input fields
-        if (data.routeInfo.startPoint) {
-            document.getElementById('startPoint').value = data.routeInfo.startPoint;
-        }
-        if (data.routeInfo.endPoint) {
-            document.getElementById('endPoint').value = data.routeInfo.endPoint;
-        }
+        // Set route info
         if (data.routeInfo.waypointCount !== undefined) {
             document.getElementById('waypointCount').textContent = data.routeInfo.waypointCount;
         }
         
-        const startPointId = data.routeInfo.startPoint;
-        const endPointId = data.routeInfo.endPoint;
-        
         data.points.forEach(pointData => {
-            if (pointData.x !== undefined && pointData.y !== undefined) {
-                // Skip start and end points (they should not be registered as markers)
-                if (pointData.type === 'start' || pointData.type === 'end') {
-                    return;
-                }
-                
-                // Skip if ID matches start or end point IDs (but allow blank IDs)
-                if (pointData.id && (pointData.id === startPointId || pointData.id === endPointId)) {
-                    return;
-                }
-                
-                // Create marker point with blue color, size 3, stroke 1
-                // Include waypoints and any other points, even with blank ID
-                // No input box needed for markers
+            if (pointData.x !== undefined && pointData.y !== undefined && pointData.type === 'waypoint') {
+                // Add waypoints to routePoints array
                 const point = {
                     x: Math.round(pointData.x * scaleX),
-                    y: Math.round(pointData.y * scaleY),
-                    id: pointData.id || '',
-                    isMarker: true
+                    y: Math.round(pointData.y * scaleY)
                 };
-                this.points.push(point);
+                this.routePoints.push(point);
             }
         });
         
