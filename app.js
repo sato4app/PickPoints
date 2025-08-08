@@ -556,6 +556,10 @@ class PickPoints {
         const scaleX = this.currentImage.width / this.canvas.width;
         const scaleY = this.currentImage.height / this.canvas.height;
         
+        // 出力前の状態をデバッグ出力
+        console.log('Debug - exportRouteJSON: 出力前の状態 - startPointId:', this.startPointId, 'endPointId:', this.endPointId);
+        console.log('Debug - exportRouteJSON: routePoints:', this.routePoints);
+        
         // ルートJSONデータ構造を作成
         const routeData = {
             routeInfo: {
@@ -575,6 +579,9 @@ class PickPoints {
             })),
             exportedAt: new Date().toISOString()
         };
+        
+        // 出力するJSONデータをコンソールに表示
+        console.log('Debug - exportRouteJSON: 出力するJSONデータ:', JSON.stringify(routeData, null, 2));
         
         // ダウンロード実行
         this.downloadJSON(routeData, `route_${new Date().toISOString().slice(0, 10)}.json`);
@@ -634,11 +641,19 @@ class PickPoints {
      * JSONデータからルート情報を復元
      */
     loadRouteFromJSON(data) {
+        // 読み込まれたJSONデータ全体をコンソールに出力
+        console.log('Debug - loadRouteFromJSON: 読み込まれたJSONデータ全体:', JSON.stringify(data, null, 2));
+        
         // データ形式の検証
         if (!data.points || !Array.isArray(data.points) || !data.routeInfo) {
+            console.log('Debug - loadRouteFromJSON: データ形式エラー - points:', data.points, 'routeInfo:', data.routeInfo);
             alert('ルートJSONファイルの形式が正しくありません');
             return;
         }
+        
+        // routeInfoの詳細確認
+        console.log('Debug - loadRouteFromJSON: routeInfo詳細:', data.routeInfo);
+        console.log('Debug - loadRouteFromJSON: routeInfoのキー一覧:', Object.keys(data.routeInfo));
         
         // 座標変換用のスケール計算
         const scaleX = this.canvas.width / this.currentImage.width;
