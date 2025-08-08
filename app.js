@@ -22,6 +22,7 @@ class PickPoints {
         const jsonInput = document.getElementById('jsonInput');
         const startRouteBtn = document.getElementById('startRouteBtn');
         const endRouteBtn = document.getElementById('endRouteBtn');
+        const clearRouteBtn = document.getElementById('clearRouteBtn');
         const exportRouteBtn = document.getElementById('exportRouteBtn');
         const routeJsonInput = document.getElementById('routeJsonInput');
         const startPointInput = document.getElementById('startPoint');
@@ -47,6 +48,10 @@ class PickPoints {
         endRouteBtn.addEventListener('click', (e) => {
             e.preventDefault();
             this.endRouteMode();
+        });
+        clearRouteBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.clearRoute();
         });
         exportRouteBtn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -382,6 +387,7 @@ class PickPoints {
         
         document.getElementById('startRouteBtn').disabled = !hasImage || !startPoint || !endPoint || this.routeMode;
         document.getElementById('endRouteBtn').disabled = !this.routeMode;
+        document.getElementById('clearRouteBtn').disabled = !this.routeMode;
         document.getElementById('exportRouteBtn').disabled = !this.routeMode || this.routePoints.length === 0;
     }
     
@@ -411,6 +417,31 @@ class PickPoints {
     
     updateWaypointCount() {
         document.getElementById('waypointCount').textContent = this.routePoints.length;
+    }
+    
+    clearRoute() {
+        // Clear start and end point inputs
+        document.getElementById('startPoint').value = '';
+        document.getElementById('endPoint').value = '';
+        
+        // Clear route points and update count
+        this.routePoints = [];
+        this.updateWaypointCount();
+        
+        // Clear start and end point IDs
+        this.startPointId = '';
+        this.endPointId = '';
+        
+        // End route mode if active
+        if (this.routeMode) {
+            this.endRouteMode();
+        }
+        
+        // Redraw image to clear route markers
+        this.drawImage();
+        
+        // Update button states
+        this.updateRouteButtons();
     }
     
     hideAllInputBoxes() {

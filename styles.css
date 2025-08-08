@@ -1,5 +1,5 @@
 :root {
-    --sidebar-width: 280px;
+    --sidebar-width: 225px;
     --layout-mode: 'sidebar';
 }
 
@@ -449,4 +449,13 @@ header p {
 
 .btn-export-route:hover:not(:disabled) {
     background: #138496;
+}
+
+.btn-clear-route {
+    background: #f39c12;
+    color: white;
+}
+
+.btn-clear-route:hover:not(:disabled) {
+    background: #d68910;
 }
