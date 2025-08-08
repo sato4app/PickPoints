@@ -8,7 +8,16 @@
 </head>
 <body>
     <div class="container">
-        <button class="layout-toggle-btn" id="layoutToggle">サイドバー</button>
+        <div class="layout-selector">
+            <label class="layout-option">
+                <input type="radio" name="layout" value="sidebar" checked>
+                <span>サイドバー</span>
+            </label>
+            <label class="layout-option">
+                <input type="radio" name="layout" value="overlay">
+                <span>オーバーレイ</span>
+            </label>
+        </div>
         <header>
             <h1>PickPoints</h1>
             <p>ハイキングマップからポイントを選択してJSON出力</p>

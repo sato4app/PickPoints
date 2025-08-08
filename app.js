@@ -56,9 +56,15 @@ class PickPoints {
         startPointInput.addEventListener('input', (e) => this.updateRouteButtons());
         endPointInput.addEventListener('input', (e) => this.updateRouteButtons());
         
-        // Layout toggle
-        const layoutToggle = document.getElementById('layoutToggle');
-        layoutToggle.addEventListener('click', () => this.toggleLayout());
+        // Layout radio buttons
+        const layoutRadios = document.querySelectorAll('input[name="layout"]');
+        layoutRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    this.setLayout(e.target.value);
+                }
+            });
+        });
     }
     
     handleImageLoad(event) {
@@ -582,8 +588,8 @@ class PickPoints {
         });
     }
     
-    toggleLayout() {
-        this.currentLayout = this.currentLayout === 'sidebar' ? 'overlay' : 'sidebar';
+    setLayout(layout) {
+        this.currentLayout = layout;
         this.updateLayoutDisplay();
         
         if (this.currentImage) {
@@ -596,14 +602,12 @@ class PickPoints {
     
     updateLayoutDisplay() {
         const mainContent = document.querySelector('.main-content');
-        const toggleBtn = document.getElementById('layoutToggle');
-        
         mainContent.setAttribute('data-layout', this.currentLayout);
         
-        if (this.currentLayout === 'sidebar') {
-            toggleBtn.textContent = 'オーバーレイ';
-        } else {
-            toggleBtn.textContent = 'サイドバー';
+        // Update radio button to match current layout
+        const radio = document.querySelector(`input[name="layout"][value="${this.currentLayout}"]`);
+        if (radio) {
+            radio.checked = true;
         }
     }
     
