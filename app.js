@@ -202,6 +202,7 @@ class PickPoints {
             id: '',
             isMarker: false  // User-added points are never markers, even with blank IDs
         };
+        console.log('Debug - addPoint: currentEditingMode =', this.currentEditingMode, 'point =', point);
         this.points.push(point);
         this.drawPoint(point);
         this.createInputBox(point, this.points.length - 1);
@@ -303,8 +304,10 @@ class PickPoints {
     }
     
     createInputBox(point, index) {
+        console.log('Debug - createInputBox: point =', point, 'index =', index, 'isMarker =', point.isMarker);
         // Skip creating input boxes for marker points
         if (point.isMarker) {
+            console.log('Debug - createInputBox: skipping marker point');
             return;
         }
         
@@ -507,11 +510,13 @@ class PickPoints {
     }
     
     loadRouteFromJSON(data) {
+        console.log('Debug - loadRouteFromJSON: received data =', data);
         if (!data.points || !Array.isArray(data.points) || !data.routeInfo) {
             alert('ルートJSONファイルの形式が正しくありません');
             return;
         }
         
+        console.log('Debug - loadRouteFromJSON: routeInfo =', data.routeInfo);
         const scaleX = this.canvas.width / this.currentImage.width;
         const scaleY = this.canvas.height / this.currentImage.height;
         
@@ -522,6 +527,7 @@ class PickPoints {
         this.startPointId = data.routeInfo.startPointId || '';
         this.endPointId = data.routeInfo.endPointId || '';
         console.log('Debug - loadRouteFromJSON: startPointId =', this.startPointId, 'endPointId =', this.endPointId);
+        console.log('Debug - loadRouteFromJSON: from JSON - startPointId =', data.routeInfo.startPointId, 'endPointId =', data.routeInfo.endPointId);
         document.getElementById('startPointInput').value = this.startPointId;
         document.getElementById('endPointInput').value = this.endPointId;
         
