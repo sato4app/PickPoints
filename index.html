@@ -65,6 +65,16 @@
                 <div class="route-editor" id="routeEditor" style="display: none;">
                     <h3>ルート編集</h3>
                     <div class="route-info">
+                        <div class="route-points-inputs">
+                            <div class="route-point-input">
+                                <label for="startPointInput">開始ポイント:</label>
+                                <input type="text" id="startPointInput" class="route-point-field" placeholder="開始点ID" maxlength="4">
+                            </div>
+                            <div class="route-point-input">
+                                <label for="endPointInput">終了ポイント:</label>
+                                <input type="text" id="endPointInput" class="route-point-field" placeholder="終了点ID" maxlength="4">
+                            </div>
+                        </div>
                         <button type="button" id="clearRouteBtn" class="btn btn-clear-route">ルートをクリア</button>
                         <button type="button" id="exportRouteBtn" class="btn btn-export-route">ルートをJSON出力</button>
                         <div class="file-input-wrapper">

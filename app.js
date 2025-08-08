@@ -24,6 +24,8 @@ class PickPoints {
         const clearRouteBtn = document.getElementById('clearRouteBtn');
         const exportRouteBtn = document.getElementById('exportRouteBtn');
         const routeJsonInput = document.getElementById('routeJsonInput');
+        const startPointInput = document.getElementById('startPointInput');
+        const endPointInput = document.getElementById('endPointInput');
         
         
         
@@ -47,6 +49,21 @@ class PickPoints {
             this.exportRouteJSON();
         });
         routeJsonInput.addEventListener('change', (e) => this.handleRouteJSONLoad(e));
+        
+        // Start and End point input fields
+        startPointInput.addEventListener('input', (e) => {
+            const value = e.target.value.replace(/[a-z]/g, (match) => match.toUpperCase());
+            this.startPointId = value;
+            e.target.value = value;
+            this.drawImage(); // Redraw to update point colors
+        });
+        
+        endPointInput.addEventListener('input', (e) => {
+            const value = e.target.value.replace(/[a-z]/g, (match) => match.toUpperCase());
+            this.endPointId = value;
+            e.target.value = value;
+            this.drawImage(); // Redraw to update point colors
+        });
         
         // Layout radio buttons
         const layoutRadios = document.querySelectorAll('input[name="layout"]');
@@ -235,9 +252,9 @@ class PickPoints {
     }
     
     updatePointCount() {
-        // Count only non-marker points (exclude waypoints loaded from JSON)
-        const nonMarkerPoints = this.points.filter(point => !point.isMarker);
-        document.getElementById('pointCount').textContent = nonMarkerPoints.length;
+        // Count all user-added points (exclude only waypoints loaded from JSON marked as isMarker)
+        const userPoints = this.points.filter(point => !point.isMarker);
+        document.getElementById('pointCount').textContent = userPoints.length;
     }
     
     enableControls() {
@@ -310,11 +327,9 @@ class PickPoints {
         
         input.addEventListener('blur', (e) => {
             const value = e.target.value.trim();
-            // Don't remove marker points (loaded from JSON) even if ID is blank
-            if (value === '' && !this.points[index].isMarker) {
-                this.removePoint(index);
-                return;
-            }
+            // Allow points with blank IDs to remain, only remove if explicitly deleted
+            // Don't auto-remove points with blank IDs in point editing mode
+            this.points[index].id = value;
         });
         
         document.body.appendChild(input);
@@ -395,6 +410,12 @@ class PickPoints {
         this.routePoints = [];
         this.updateWaypointCount();
         
+        // Clear start and end point IDs
+        this.startPointId = '';
+        this.endPointId = '';
+        document.getElementById('startPointInput').value = '';
+        document.getElementById('endPointInput').value = '';
+        
         // Redraw image to clear route markers
         this.drawImage();
     }
@@ -411,6 +432,8 @@ class PickPoints {
         
         const routeData = {
             routeInfo: {
+                startPointId: this.startPointId || '',
+                endPointId: this.endPointId || '',
                 waypointCount: this.routePoints.length
             },
             imageInfo: {
@@ -488,6 +511,17 @@ class PickPoints {
         // Set route info
         if (data.routeInfo.waypointCount !== undefined) {
             document.getElementById('waypointCount').textContent = data.routeInfo.waypointCount;
+        }
+        
+        // Set start and end point IDs
+        if (data.routeInfo.startPointId !== undefined) {
+            this.startPointId = data.routeInfo.startPointId;
+            document.getElementById('startPointInput').value = data.routeInfo.startPointId;
+        }
+        
+        if (data.routeInfo.endPointId !== undefined) {
+            this.endPointId = data.routeInfo.endPointId;
+            document.getElementById('endPointInput').value = data.routeInfo.endPointId;
         }
         
         data.points.forEach(pointData => {

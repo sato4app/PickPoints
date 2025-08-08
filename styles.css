@@ -512,3 +512,47 @@ header p {
 .btn-clear-route:hover:not(:disabled) {
     background: #d68910;
 }
+
+/* Route Points Input Fields */
+.route-points-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+}
+
+.route-point-input {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.route-point-input label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #495057;
+}
+
+.route-point-field {
+    padding: 6px 10px;
+    border: 2px solid #dee2e6;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.route-point-field:focus {
+    border-color: #3498db;
+}
+
+.route-point-field::placeholder {
+    color: #bdc3c7;
+    font-weight: normal;
+}
