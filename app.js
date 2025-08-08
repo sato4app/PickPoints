@@ -9,8 +9,10 @@ class PickPoints {
         this.routePoints = [];
         this.startPointId = '';
         this.endPointId = '';
+        this.currentLayout = 'sidebar';
         
         this.initializeEventListeners();
+        this.initializeLayoutManager();
     }
     
     initializeEventListeners() {
@@ -53,6 +55,10 @@ class PickPoints {
         routeJsonInput.addEventListener('change', (e) => this.handleRouteJSONLoad(e));
         startPointInput.addEventListener('input', (e) => this.updateRouteButtons());
         endPointInput.addEventListener('input', (e) => this.updateRouteButtons());
+        
+        // Layout toggle
+        const layoutToggle = document.getElementById('layoutToggle');
+        layoutToggle.addEventListener('click', () => this.toggleLayout());
     }
     
     handleImageLoad(event) {
@@ -131,25 +137,6 @@ class PickPoints {
         this.updatePointCount();
     }
     
-    setupCanvas() {
-        const container = this.canvas.parentElement;
-        const containerRect = container.getBoundingClientRect();
-        const availableWidth = Math.max(containerRect.width - 40, 300);
-        const maxWidth = Math.min(availableWidth, 800);
-        
-        const aspectRatio = this.currentImage.height / this.currentImage.width;
-        const canvasWidth = maxWidth;
-        const canvasHeight = maxWidth * aspectRatio;
-        
-        this.canvas.width = canvasWidth;
-        this.canvas.height = canvasHeight;
-        
-        this.canvas.style.width = canvasWidth + 'px';
-        this.canvas.style.height = canvasHeight + 'px';
-        this.canvas.style.display = 'block';
-        this.canvas.style.visibility = 'visible';
-        
-    }
     
     drawImage() {
         if (!this.currentImage) return;
@@ -579,6 +566,80 @@ class PickPoints {
         
         this.drawImage();
         this.updatePointCount();
+    }
+    
+    initializeLayoutManager() {
+        this.updateLayoutDisplay();
+        
+        // Handle window resize for responsive canvas sizing
+        window.addEventListener('resize', () => {
+            if (this.currentImage) {
+                setTimeout(() => {
+                    this.setupCanvas();
+                    this.drawImage();
+                }, 100);
+            }
+        });
+    }
+    
+    toggleLayout() {
+        this.currentLayout = this.currentLayout === 'sidebar' ? 'overlay' : 'sidebar';
+        this.updateLayoutDisplay();
+        
+        if (this.currentImage) {
+            setTimeout(() => {
+                this.setupCanvas();
+                this.drawImage();
+            }, 300);
+        }
+    }
+    
+    updateLayoutDisplay() {
+        const mainContent = document.querySelector('.main-content');
+        const toggleBtn = document.getElementById('layoutToggle');
+        
+        mainContent.setAttribute('data-layout', this.currentLayout);
+        
+        if (this.currentLayout === 'sidebar') {
+            toggleBtn.textContent = 'オーバーレイ';
+        } else {
+            toggleBtn.textContent = 'サイドバー';
+        }
+    }
+    
+    setupCanvas() {
+        if (!this.currentImage) return;
+        
+        const container = this.canvas.parentElement;
+        const containerRect = container.getBoundingClientRect();
+        
+        let availableWidth, availableHeight;
+        
+        if (this.currentLayout === 'sidebar') {
+            availableWidth = containerRect.width - 40;
+            availableHeight = window.innerHeight - 140;
+        } else {
+            availableWidth = window.innerWidth - 40;
+            availableHeight = window.innerHeight - 140;
+        }
+        
+        const imageAspectRatio = this.currentImage.height / this.currentImage.width;
+        
+        let canvasWidth = availableWidth;
+        let canvasHeight = canvasWidth * imageAspectRatio;
+        
+        if (canvasHeight > availableHeight) {
+            canvasHeight = availableHeight;
+            canvasWidth = canvasHeight / imageAspectRatio;
+        }
+        
+        this.canvas.width = canvasWidth;
+        this.canvas.height = canvasHeight;
+        
+        this.canvas.style.width = canvasWidth + 'px';
+        this.canvas.style.height = canvasHeight + 'px';
+        this.canvas.style.display = 'block';
+        this.canvas.style.visibility = 'visible';
     }
 }
 

@@ -8,12 +8,13 @@
 </head>
 <body>
     <div class="container">
+        <button class="layout-toggle-btn" id="layoutToggle">サイドバー</button>
         <header>
             <h1>PickPoints</h1>
             <p>ハイキングマップからポイントを選択してJSON出力</p>
         </header>
         
-        <div class="main-content">
+        <div class="main-content" data-layout="sidebar">
             <div class="map-container">
                 <canvas id="mapCanvas" class="map-canvas"></canvas>
             </div>
