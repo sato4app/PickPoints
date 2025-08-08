@@ -146,6 +146,11 @@ class PickPoints {
         
         this.drawImage();
         this.updatePointCount();
+        
+        // Remove focus from any input elements after JSON load
+        if (document.activeElement && document.activeElement.blur) {
+            document.activeElement.blur();
+        }
     }
     
     
@@ -317,7 +322,7 @@ class PickPoints {
         document.body.appendChild(input);
         this.inputElements.push(input);
         
-        setTimeout(() => input.focus(), 100);
+        // Don't auto-focus input boxes (removed setTimeout focus)
     }
     
     positionInputBox(input, point) {
@@ -603,6 +608,11 @@ class PickPoints {
         
         this.drawImage();
         this.updatePointCount();
+        
+        // Remove focus from any input elements after route JSON load
+        if (document.activeElement && document.activeElement.blur) {
+            document.activeElement.blur();
+        }
     }
     
     initializeLayoutManager() {
