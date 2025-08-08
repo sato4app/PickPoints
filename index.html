@@ -36,19 +36,33 @@
                     </label>
                 </div>
                 
-                <button type="button" id="clearBtn" class="btn btn-clear" disabled>ポイントをクリア</button>
-                <button type="button" id="exportBtn" class="btn btn-export" disabled>ポイントをJSON出力</button>
-                
-                <div class="file-input-wrapper">
-                    <input type="file" id="jsonInput" accept="application/json" class="file-input">
-                    <label for="jsonInput" class="file-input-label">
-                        ポイントのJSON読込
+                <div class="editing-mode-selector">
+                    <label class="editing-option">
+                        <input type="radio" name="editingMode" value="point" checked>
+                        <span>ポイント編集</span>
+                    </label>
+                    <label class="editing-option">
+                        <input type="radio" name="editingMode" value="route">
+                        <span>ルート編集</span>
                     </label>
                 </div>
                 
-                <div class="point-count">ポイント数: <span id="pointCount">0</span></div>
+                <div class="point-editor" id="pointEditor">
+                    <h3>ポイント編集</h3>
+                    <button type="button" id="clearBtn" class="btn btn-clear" disabled>ポイントをクリア</button>
+                    <button type="button" id="exportBtn" class="btn btn-export" disabled>ポイントをJSON出力</button>
+                    
+                    <div class="file-input-wrapper">
+                        <input type="file" id="jsonInput" accept="application/json" class="file-input">
+                        <label for="jsonInput" class="file-input-label">
+                            ポイントのJSON読込
+                        </label>
+                    </div>
+                    
+                    <div class="point-count">ポイント数: <span id="pointCount">0</span></div>
+                </div>
                 
-                <div class="route-editor">
+                <div class="route-editor" id="routeEditor" style="display: none;">
                     <h3>ルート編集</h3>
                     <div class="route-inputs">
                         <div class="input-group-horizontal">

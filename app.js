@@ -10,6 +10,7 @@ class PickPoints {
         this.startPointId = '';
         this.endPointId = '';
         this.currentLayout = 'sidebar';
+        this.currentEditingMode = 'point';
         
         this.initializeEventListeners();
         this.initializeLayoutManager();
@@ -70,6 +71,16 @@ class PickPoints {
                 }
             });
         });
+        
+        // Editing mode radio buttons
+        const editingModeRadios = document.querySelectorAll('input[name="editingMode"]');
+        editingModeRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    this.setEditingMode(e.target.value);
+                }
+            });
+        });
     }
     
     handleImageLoad(event) {
@@ -87,6 +98,8 @@ class PickPoints {
                 this.setupCanvas();
                 this.drawImage();
                 this.enableControls();
+                // Reset to point editing mode when loading new image
+                this.setEditingMode('point');
             };
             img.onerror = () => {
                 alert('画像の読み込みに失敗しました');
@@ -171,9 +184,9 @@ class PickPoints {
         const x = (event.clientX - rect.left) * (this.canvas.width / rect.width);
         const y = (event.clientY - rect.top) * (this.canvas.height / rect.height);
         
-        if (this.routeMode) {
+        if (this.currentEditingMode === 'route' && this.routeMode) {
             this.addRoutePoint(x, y);
-        } else {
+        } else if (this.currentEditingMode === 'point') {
             this.addPoint(x, y);
         }
     }
@@ -617,6 +630,7 @@ class PickPoints {
     
     initializeLayoutManager() {
         this.updateLayoutDisplay();
+        this.updateEditingModeDisplay();
         
         // Handle window resize for responsive canvas sizing
         window.addEventListener('resize', () => {
@@ -627,6 +641,30 @@ class PickPoints {
                 }, 100);
             }
         });
+    }
+    
+    setEditingMode(mode) {
+        this.currentEditingMode = mode;
+        this.updateEditingModeDisplay();
+    }
+    
+    updateEditingModeDisplay() {
+        const pointEditor = document.getElementById('pointEditor');
+        const routeEditor = document.getElementById('routeEditor');
+        
+        if (this.currentEditingMode === 'point') {
+            pointEditor.style.display = 'flex';
+            routeEditor.style.display = 'none';
+        } else {
+            pointEditor.style.display = 'none';
+            routeEditor.style.display = 'block';
+        }
+        
+        // Update radio button to match current editing mode
+        const radio = document.querySelector(`input[name=\"editingMode\"][value=\"${this.currentEditingMode}\"]`);
+        if (radio) {
+            radio.checked = true;
+        }
     }
     
     setLayout(layout) {
