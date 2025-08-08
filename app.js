@@ -153,7 +153,8 @@ class PickPoints {
                 const point = {
                     x: Math.round(pointData.x * scaleX),
                     y: Math.round(pointData.y * scaleY),
-                    id: pointData.id || ''
+                    id: pointData.id || '',
+                    isMarker: pointData.isMarker || false  // Preserve marker status from JSON, default to false
                 };
                 this.points.push(point);
                 this.createInputBox(point, this.points.length - 1);
@@ -198,7 +199,8 @@ class PickPoints {
         const point = { 
             x: Math.round(x), 
             y: Math.round(y),
-            id: ''
+            id: '',
+            isMarker: false  // User-added points are never markers, even with blank IDs
         };
         this.points.push(point);
         this.drawPoint(point);
@@ -281,7 +283,8 @@ class PickPoints {
                 index: index + 1,
                 id: point.id || '',
                 x: Math.round(point.x * scaleX),
-                y: Math.round(point.y * scaleY)
+                y: Math.round(point.y * scaleY),
+                isMarker: point.isMarker || false
             })),
             exportedAt: new Date().toISOString()
         };
@@ -514,15 +517,10 @@ class PickPoints {
         }
         
         // Set start and end point IDs
-        if (data.routeInfo.startPointId !== undefined) {
-            this.startPointId = data.routeInfo.startPointId;
-            document.getElementById('startPointInput').value = data.routeInfo.startPointId;
-        }
-        
-        if (data.routeInfo.endPointId !== undefined) {
-            this.endPointId = data.routeInfo.endPointId;
-            document.getElementById('endPointInput').value = data.routeInfo.endPointId;
-        }
+        this.startPointId = data.routeInfo.startPointId || '';
+        this.endPointId = data.routeInfo.endPointId || '';
+        document.getElementById('startPointInput').value = this.startPointId;
+        document.getElementById('endPointInput').value = this.endPointId;
         
         data.points.forEach(pointData => {
             if (pointData.x !== undefined && pointData.y !== undefined && pointData.type === 'waypoint') {
