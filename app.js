@@ -293,8 +293,9 @@ class PickPoints {
             let radius = 4;
             let strokeWidth = 1.5;
             
-            // 開始・終了ポイントは青色で表示
-            if (this.routeMode && (point.id === this.startPointId || point.id === this.endPointId)) {
+            // 開始・終了ポイントは青色で表示（ルート編集モード時またはstartPointId/endPointIdが設定されている場合）
+            if ((this.currentEditingMode === 'route' || this.startPointId || this.endPointId) && 
+                (point.id === this.startPointId || point.id === this.endPointId)) {
                 color = '#0066ff';
             } else if (point.isMarker) {
                 // JSONから読み込まれたマーカーは小さい青円で表示
