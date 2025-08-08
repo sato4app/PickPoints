@@ -307,9 +307,9 @@ class PickPoints {
             this.drawPoint(point, color, radius, strokeWidth);
         });
         
-        // ルートの中間点を青色で描画
+        // ルートの中間点を青色で描画（半径3px、白枠1px）
         this.routePoints.forEach(point => {
-            this.drawPoint(point, '#0066ff');
+            this.drawPoint(point, '#0066ff', 3, 1);
         });
         
         // ポイント編集モードの場合のみ入力ボックスを再描画
@@ -590,9 +590,9 @@ class PickPoints {
             y: Math.round(y)
         };
         
-        // ルートポイント配列に追加し、青色で描画
+        // ルートポイント配列に追加し、青色で描画（半径3px、白枠1px）
         this.routePoints.push(point);
-        this.drawPoint(point, '#0066ff');
+        this.drawPoint(point, '#0066ff', 3, 1);
         this.updateWaypointCount();
     }
     
@@ -648,8 +648,10 @@ class PickPoints {
         this.routePoints = [];
         
         // 開始・終了ポイントIDを設定
+        console.log('Debug - loadRouteFromJSON: JSONから読み込む値 - startPointId:', data.routeInfo.startPointId, 'endPointId:', data.routeInfo.endPointId);
         this.startPointId = data.routeInfo.startPointId || '';
         this.endPointId = data.routeInfo.endPointId || '';
+        console.log('Debug - loadRouteFromJSON: 設定後の値 - this.startPointId:', this.startPointId, 'this.endPointId:', this.endPointId);
         document.getElementById('startPointInput').value = this.startPointId;
         document.getElementById('endPointInput').value = this.endPointId;
         
