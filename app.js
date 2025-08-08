@@ -330,8 +330,11 @@ class PickPoints {
         
         input.addEventListener('blur', (e) => {
             const value = e.target.value.trim();
-            // Allow points with blank IDs to remain, only remove if explicitly deleted
-            // Don't auto-remove points with blank IDs in point editing mode
+            // In point editing mode, ID names are mandatory - remove points with blank IDs
+            if (value === '' && !this.points[index].isMarker) {
+                this.removePoint(index);
+                return;
+            }
             this.points[index].id = value;
         });
         
