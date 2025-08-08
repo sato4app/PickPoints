@@ -2,7 +2,7 @@
    CSS Variables & Reset
    ===================================== */
 :root {
-    --sidebar-width: 240px;
+    --sidebar-width: 250px;
     --primary-color: #3498db;
     --primary-dark: #2980b9;
     --secondary-color: #2c3e50;
