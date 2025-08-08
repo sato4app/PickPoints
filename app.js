@@ -333,19 +333,27 @@ class PickPoints {
         
         input.addEventListener('blur', (e) => {
             const value = e.target.value.trim();
-            console.log('Debug - blur event: value =', value, 'currentEditingMode =', this.currentEditingMode, 'index =', index);
+            // Find the actual current index of this point
+            const currentIndex = this.points.findIndex(p => p.x === point.x && p.y === point.y);
+            console.log('Debug - blur event: value =', value, 'currentEditingMode =', this.currentEditingMode, 'originalIndex =', index, 'currentIndex =', currentIndex);
             // In point editing mode, ID names are mandatory - remove points with blank IDs
             if (value === '' && this.currentEditingMode === 'point') {
-                console.log('Debug - removing point at index', index, 'because value is blank');
-                this.removePoint(index);
+                console.log('Debug - removing point at currentIndex', currentIndex, 'because value is blank');
+                if (currentIndex >= 0) {
+                    this.removePoint(currentIndex);
+                }
                 return;
             }
-            this.points[index].id = value;
-            console.log('Debug - set point id at index', index, 'to', value);
+            if (currentIndex >= 0) {
+                this.points[currentIndex].id = value;
+                console.log('Debug - set point id at currentIndex', currentIndex, 'to', value);
+            }
         });
         
         document.body.appendChild(input);
         this.inputElements.push(input);
+        console.log('Debug - createInputBox: input element added to DOM, total inputs:', this.inputElements.length);
+        console.log('Debug - createInputBox: input element:', input, 'has blur listener:', input.onblur !== null);
         
         // Don't auto-focus input boxes (removed setTimeout focus)
     }
