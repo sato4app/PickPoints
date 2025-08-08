@@ -330,6 +330,7 @@ class PickPoints {
         
         input.addEventListener('blur', (e) => {
             const value = e.target.value.trim();
+            console.log('Debug - blur event: value =', value, 'currentEditingMode =', this.currentEditingMode);
             // In point editing mode, ID names are mandatory - remove points with blank IDs
             if (value === '' && this.currentEditingMode === 'point') {
                 this.removePoint(index);
@@ -520,6 +521,7 @@ class PickPoints {
         // Set start and end point IDs from routeInfo
         this.startPointId = data.routeInfo.startPointId || '';
         this.endPointId = data.routeInfo.endPointId || '';
+        console.log('Debug - loadRouteFromJSON: startPointId =', this.startPointId, 'endPointId =', this.endPointId);
         document.getElementById('startPointInput').value = this.startPointId;
         document.getElementById('endPointInput').value = this.endPointId;
         
