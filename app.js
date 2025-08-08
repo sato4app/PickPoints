@@ -244,14 +244,17 @@ class PickPoints {
         if (this.currentEditingMode === 'route') {
             this.addRoutePoint(x, y);
         } else if (this.currentEditingMode === 'point') {
-            this.addPoint(x, y);
+            // 直前に追加された未入力ポイントがあれば破棄してから新規追加
+            this.removeTrailingEmptyUserPoints();
+            // 入力欄にフォーカスする新規ポイント追加
+            this.addPoint(x, y, /*focusInput*/ true);
         }
     }
     
     /**
      * ポイント編集モードでのポイント追加
      */
-    addPoint(x, y) {
+    addPoint(x, y, focusInput = false) {
         // 新しいポイントオブジェクトを作成
         const point = { 
             x: Math.round(x), 
@@ -263,7 +266,7 @@ class PickPoints {
         // ポイントを配列に追加し、画面に表示
         this.points.push(point);
         this.drawPoint(point);
-        this.createInputBox(point, this.points.length - 1);
+        this.createInputBox(point, this.points.length - 1, focusInput);
         this.updatePointCount();
     }
     
@@ -383,7 +386,7 @@ class PickPoints {
     /**
      * ポイント用のID入力ボックスを動的生成
      */
-    createInputBox(point, index) {
+    createInputBox(point, index, shouldFocus = false) {
         // マーカーポイントには入力ボックスを作成しない
         if (point.isMarker) {
             return;
@@ -434,6 +437,11 @@ class PickPoints {
         // DOMに要素を追加
         document.body.appendChild(input);
         this.inputElements.push(input);
+
+        // 新規作成時は入力にフォーカスして、他をクリックした際にblurで未入力ポイントが削除されるようにする
+        if (shouldFocus && (point.id ?? '') === '' && this.currentEditingMode === 'point') {
+            setTimeout(() => input.focus(), 0);
+        }
     }
     
     /**
@@ -515,6 +523,36 @@ class PickPoints {
         this.clearInputBoxes();
         this.drawImage();
         this.updatePointCount();
+    }
+
+    /**
+     * 末尾に連続して存在する未入力（idが空）のユーザーポイントを削除
+     * - JSONからのマーカー（isMarker=true）は対象外
+     * - 一括削除後に1回だけ再描画・カウント更新
+     */
+    removeTrailingEmptyUserPoints() {
+        if (this.points.length === 0) return;
+        let removed = false;
+        for (let i = this.points.length - 1; i >= 0; i--) {
+            const point = this.points[i];
+            if (point.isMarker) {
+                // マーカーはスキップしてさらに前方を確認
+                continue;
+            }
+            if ((point.id ?? '') === '') {
+                this.points.splice(i, 1);
+                removed = true;
+                // さらに前にも未入力が続く場合に備えて継続
+            } else {
+                // 直近で未入力が終わったらそこで停止
+                break;
+            }
+        }
+        if (removed) {
+            this.clearInputBoxes();
+            this.drawImage();
+            this.updatePointCount();
+        }
     }
     
     /**
