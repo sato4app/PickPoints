@@ -14,6 +14,7 @@ class PickPoints {
         // データ保存用プロパティ
         this.points = [];              // ポイント編集モードのポイント配列
         this.currentImage = null;      // 現在読み込まれている画像
+        this.currentImageFileName = ''; // 現在読み込まれている画像のファイル名
         this.inputElements = [];       // 動的に生成された入力フィールド配列
         this.routePoints = [];         // ルート編集モードの中間点配列
         this.startPointId = '';        // ルートの開始ポイントID
@@ -121,6 +122,9 @@ class PickPoints {
             return;
         }
         
+        // ファイル名を保存（拡張子を除く）
+        this.currentImageFileName = file.name.replace(/\.png$/i, '');
+        
         // FileReaderを使用して画像を読み込み
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -132,6 +136,9 @@ class PickPoints {
                 this.drawImage();
                 this.enableControls();
                 this.setEditingMode('point');  // デフォルトでポイント編集モードに設定
+                
+                // 画像と同じフォルダから対応するJSONファイルを読み込むよう促す
+                this.promptForJSONLoad(file);
             };
             // 画像読み込み失敗時のエラーハンドリング
             img.onerror = () => {
@@ -143,6 +150,22 @@ class PickPoints {
     }
     
     /**
+     * 画像と同じフォルダからJSONファイルを読み込むよう促す
+     */
+    promptForJSONLoad(imageFile) {
+        const jsonFileName = `${this.currentImageFileName}_points.json`;
+        const shouldLoadJSON = confirm(`画像 "${imageFile.name}" に対応するJSONファイル "${jsonFileName}" を同じフォルダから読み込みますか？\n\n「OK」を選択すると、ファイル選択ダイアログが開きます。`);
+        
+        if (shouldLoadJSON) {
+            // JSONファイル選択ダイアログを開く
+            const jsonInput = document.getElementById('jsonInput');
+            if (jsonInput) {
+                jsonInput.click();
+            }
+        }
+    }
+    
+    /**
      * JSONファイルの読み込み処理（ポイントデータ）
      */
     handleJSONLoad(event) {
@@ -151,6 +174,18 @@ class PickPoints {
         if (!file || !file.type.includes('json')) {
             alert('JSONファイルを選択してください');
             return;
+        }
+        
+        // 画像が読み込まれている場合、ファイル名の対応関係をチェック
+        if (this.currentImageFileName) {
+            const expectedJsonName = `${this.currentImageFileName}_points.json`;
+            if (file.name !== expectedJsonName) {
+                const shouldContinue = confirm(`選択されたファイル "${file.name}" は、現在の画像 "${this.currentImageFileName}.png" に対応するファイルではありません。\n\n期待されるファイル名: "${expectedJsonName}"\n\nそれでも読み込みますか？`);
+                if (!shouldContinue) {
+                    event.target.value = '';
+                    return;
+                }
+            }
         }
         
         // JSONファイルを読み込んでパース
@@ -380,7 +415,8 @@ class PickPoints {
         };
         
         // ダウンロード実行
-        this.downloadJSON(data, `pickpoints_${new Date().toISOString().slice(0, 10)}.json`);
+        const filename = this.currentImageFileName ? `${this.currentImageFileName}_points.json` : `pickpoints_${new Date().toISOString().slice(0, 10)}.json`;
+        this.downloadJSON(data, filename);
     }
     
     /**
@@ -619,7 +655,8 @@ class PickPoints {
         // 出力するJSONデータをコンソールに表示（削除）
         
         // ダウンロード実行
-        this.downloadJSON(routeData, `route_${new Date().toISOString().slice(0, 10)}.json`);
+        const filename = this.currentImageFileName ? `${this.currentImageFileName}_route.json` : `route_${new Date().toISOString().slice(0, 10)}.json`;
+        this.downloadJSON(routeData, filename);
     }
     
     /**
