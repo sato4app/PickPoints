@@ -54,9 +54,9 @@ class PickPoints {
             this.clearPoints();
         });
         
-        exportBtn.addEventListener('click', (e) => {
+        exportBtn.addEventListener('click', async (e) => {
             e.preventDefault();
-            this.exportJSON();
+            await this.exportJSON();
         });
         
         // JSON読み込み処理
@@ -68,9 +68,9 @@ class PickPoints {
             this.clearRoute();
         });
         
-        exportRouteBtn.addEventListener('click', (e) => {
+        exportRouteBtn.addEventListener('click', async (e) => {
             e.preventDefault();
-            this.exportRouteJSON();
+            await this.exportRouteJSON();
         });
         
         routeJsonInput.addEventListener('change', (e) => this.handleRouteJSONLoad(e));
@@ -357,7 +357,7 @@ class PickPoints {
     /**
      * ポイントデータをJSON形式で出力・ダウンロード
      */
-    exportJSON() {
+    async exportJSON() {
         // ポイントが選択されているかチェック
         if (this.points.length === 0) {
             alert('ポイントが選択されていません');
@@ -386,7 +386,7 @@ class PickPoints {
         };
         
         // ユーザーがファイルを指定してダウンロード
-        this.downloadJSONWithUserChoice(data, 'points');
+        await this.downloadJSONWithUserChoice(data, 'points');
     }
     
     /**
@@ -589,7 +589,7 @@ class PickPoints {
     /**
      * ルートデータをJSON形式で出力・ダウンロード
      */
-    exportRouteJSON() {
+    async exportRouteJSON() {
         // ルートポイントが選択されているかチェック
         if (this.routePoints.length === 0) {
             alert('ルートポイントが選択されていません');
@@ -625,7 +625,7 @@ class PickPoints {
         // 出力するJSONデータをコンソールに表示（削除）
         
         // ユーザーがファイルを指定してダウンロード
-        this.downloadJSONWithUserChoice(routeData, 'route');
+        await this.downloadJSONWithUserChoice(routeData, 'route');
     }
     
     /**
@@ -750,27 +750,59 @@ class PickPoints {
     /**
      * ユーザーがファイルを指定してJSONデータをダウンロード（PNG画像と同じフォルダに保存）
      */
-    downloadJSONWithUserChoice(data, type) {
+    async downloadJSONWithUserChoice(data, type) {
         // JSON文字列に変換してBlobオブジェクトを作成
         const jsonString = JSON.stringify(data, null, 2);
         const blob = new Blob([jsonString], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
         
         // デフォルトファイル名を生成
         const defaultFilename = this.currentImageFileName ? 
             `${this.currentImageFileName}_${type}.json` : 
             `${type}_${new Date().toISOString().slice(0, 10)}.json`;
         
-        // ダウンロードリンクを作成・実行（ユーザーがファイル名と保存場所を選択可能）
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = defaultFilename;
-        document.body.appendChild(a);
-        a.click();
-        
-        // 一時要素とオブジェクトURLをクリーンアップ
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        try {
+            // File System Access APIが利用可能かチェック
+            if ('showSaveFilePicker' in window) {
+                // ユーザーにファイル保存ダイアログを表示
+                const fileHandle = await window.showSaveFilePicker({
+                    suggestedName: defaultFilename,
+                    types: [{
+                        description: 'JSON Files',
+                        accept: {
+                            'application/json': ['.json']
+                        }
+                    }]
+                });
+                
+                // ファイルに書き込み
+                const writable = await fileHandle.createWritable();
+                await writable.write(blob);
+                await writable.close();
+                
+                console.log(`JSONファイルが保存されました: ${fileHandle.name}`);
+            } else {
+                // フォールバック: 従来のダウンロード方式
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = defaultFilename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        } catch (error) {
+            console.error('ファイル保存エラー:', error);
+            // エラー時は従来のダウンロード方式にフォールバック
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = defaultFilename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
     }
     
     /**
