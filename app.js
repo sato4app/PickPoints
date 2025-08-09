@@ -153,15 +153,10 @@ class PickPoints {
      * 画像と同じフォルダからJSONファイルを読み込むよう促す
      */
     promptForJSONLoad(imageFile) {
-        const jsonFileName = `${this.currentImageFileName}_points.json`;
-        const shouldLoadJSON = confirm(`画像 "${imageFile.name}" に対応するJSONファイル "${jsonFileName}" を同じフォルダから読み込みますか？\n\n「OK」を選択すると、ファイル選択ダイアログが開きます。`);
-        
-        if (shouldLoadJSON) {
-            // JSONファイル選択ダイアログを開く
-            const jsonInput = document.getElementById('jsonInput');
-            if (jsonInput) {
-                jsonInput.click();
-            }
+        // 自動的にJSONファイル選択ダイアログを開く
+        const jsonInput = document.getElementById('jsonInput');
+        if (jsonInput) {
+            jsonInput.click();
         }
     }
     
@@ -174,18 +169,6 @@ class PickPoints {
         if (!file || !file.type.includes('json')) {
             alert('JSONファイルを選択してください');
             return;
-        }
-        
-        // 画像が読み込まれている場合、ファイル名の対応関係をチェック
-        if (this.currentImageFileName) {
-            const expectedJsonName = `${this.currentImageFileName}_points.json`;
-            if (file.name !== expectedJsonName) {
-                const shouldContinue = confirm(`選択されたファイル "${file.name}" は、現在の画像 "${this.currentImageFileName}.png" に対応するファイルではありません。\n\n期待されるファイル名: "${expectedJsonName}"\n\nそれでも読み込みますか？`);
-                if (!shouldContinue) {
-                    event.target.value = '';
-                    return;
-                }
-            }
         }
         
         // JSONファイルを読み込んでパース
@@ -414,9 +397,8 @@ class PickPoints {
             exportedAt: new Date().toISOString()
         };
         
-        // ダウンロード実行
-        const filename = this.currentImageFileName ? `${this.currentImageFileName}_points.json` : `pickpoints_${new Date().toISOString().slice(0, 10)}.json`;
-        this.downloadJSON(data, filename);
+        // ユーザーがファイルを指定してダウンロード
+        this.downloadJSONWithUserChoice(data, 'points');
     }
     
     /**
@@ -654,9 +636,8 @@ class PickPoints {
         
         // 出力するJSONデータをコンソールに表示（削除）
         
-        // ダウンロード実行
-        const filename = this.currentImageFileName ? `${this.currentImageFileName}_route.json` : `route_${new Date().toISOString().slice(0, 10)}.json`;
-        this.downloadJSON(routeData, filename);
+        // ユーザーがファイルを指定してダウンロード
+        this.downloadJSONWithUserChoice(routeData, 'route');
     }
     
     /**
@@ -770,6 +751,32 @@ class PickPoints {
         const a = document.createElement('a');
         a.href = url;
         a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        
+        // 一時要素とオブジェクトURLをクリーンアップ
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+    
+    /**
+     * ユーザーがファイルを指定してJSONデータをダウンロード
+     */
+    downloadJSONWithUserChoice(data, type) {
+        // JSON文字列に変換してBlobオブジェクトを作成
+        const jsonString = JSON.stringify(data, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        // デフォルトファイル名を生成
+        const defaultFilename = this.currentImageFileName ? 
+            `${this.currentImageFileName}_${type}.json` : 
+            `${type}_${new Date().toISOString().slice(0, 10)}.json`;
+        
+        // ダウンロードリンクを作成・実行
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = defaultFilename;
         document.body.appendChild(a);
         a.click();
         
