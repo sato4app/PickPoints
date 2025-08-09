@@ -671,11 +671,16 @@ class PickPoints {
             return;
         }
         
+        // 開始・終了ポイントがポイントとして登録されているかチェック
+        const validationResult = this.validateStartEndPoints();
+        if (!validationResult.isValid) {
+            alert(validationResult.message);
+            return;
+        }
+        
         // 座標変換用のスケール計算
         const scaleX = this.currentImage.width / this.canvas.width;
         const scaleY = this.currentImage.height / this.canvas.height;
-        
-        // 出力前の状態をデバッグ出力（削除）
         
         // ルートJSONデータ構造を作成
         const routeData = {
@@ -697,12 +702,53 @@ class PickPoints {
             exportedAt: new Date().toISOString()
         };
         
-        // 出力するJSONデータをコンソールに表示（削除）
-        
-        // ユーザーがファイルを指定してダウンロード
-        await this.downloadJSONWithUserChoice(routeData, 'route');
+        // カスタムファイル名でダウンロード
+        await this.downloadJSONWithUserChoice(routeData, 'route', this.generateRouteFilename());
     }
     
+    /**
+     * 開始・終了ポイントがポイントとして登録されているか検証
+     */
+    validateStartEndPoints() {
+        const registeredPointIds = this.points.map(point => point.id).filter(id => id.trim() !== '');
+        
+        // 開始ポイントのチェック
+        if (this.startPointId && !registeredPointIds.includes(this.startPointId)) {
+            return {
+                isValid: false,
+                message: `開始ポイント "${this.startPointId}" がポイントとして登録されていません。先にポイント編集モードでポイントを登録してください。`
+            };
+        }
+        
+        // 終了ポイントのチェック
+        if (this.endPointId && !registeredPointIds.includes(this.endPointId)) {
+            return {
+                isValid: false,
+                message: `終了ポイント "${this.endPointId}" がポイントとして登録されていません。先にポイント編集モードでポイントを登録してください。`
+            };
+        }
+        
+        // 開始・終了ポイントが設定されているかチェック
+        if (!this.startPointId || !this.endPointId) {
+            return {
+                isValid: false,
+                message: '開始ポイントと終了ポイントの両方を設定してください。'
+            };
+        }
+        
+        return { isValid: true };
+    }
+
+    /**
+     * ルート用のデフォルトファイル名を生成
+     */
+    generateRouteFilename() {
+        const baseFileName = this.currentImageFileName || 'route';
+        const startPoint = this.startPointId || 'start';
+        const endPoint = this.endPointId || 'end';
+        return `${baseFileName}_route_${startPoint}-${endPoint}.json`;
+    }
+
     /**
      * ルート編集モードでの中間点追加
      */
@@ -825,15 +871,15 @@ class PickPoints {
     /**
      * ユーザーがファイルを指定してJSONデータをダウンロード（PNG画像と同じフォルダに保存）
      */
-    async downloadJSONWithUserChoice(data, type) {
+    async downloadJSONWithUserChoice(data, type, customFilename = null) {
         // JSON文字列に変換してBlobオブジェクトを作成
         const jsonString = JSON.stringify(data, null, 2);
         const blob = new Blob([jsonString], { type: 'application/json' });
         
-        // デフォルトファイル名を生成
-        const defaultFilename = this.currentImageFileName ? 
+        // ファイル名を決定（カスタムファイル名優先、なければデフォルト生成）
+        const defaultFilename = customFilename || (this.currentImageFileName ? 
             `${this.currentImageFileName}_${type}.json` : 
-            `${type}_${new Date().toISOString().slice(0, 10)}.json`;
+            `${type}_${new Date().toISOString().slice(0, 10)}.json`);
         
         try {
             // File System Access APIが利用可能かチェック
