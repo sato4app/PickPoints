@@ -786,37 +786,29 @@ class PickPoints {
             // File System Access APIが利用可能かチェック
             if ('showSaveFilePicker' in window) {
                 let fileHandle;
+                let savePickerOptions = {
+                    suggestedName: defaultFilename,
+                    types: [{
+                        description: 'JSON Files',
+                        accept: {
+                            'application/json': ['.json']
+                        }
+                    }]
+                };
                 
-                // PNG画像のファイルハンドルがある場合、同じディレクトリに保存を試行
+                // PNG画像のファイルハンドルがある場合、同じディレクトリで保存ダイアログを開く
                 if (this.currentImageFileHandle) {
                     try {
-                        // 同じディレクトリにファイルを作成
-                        fileHandle = await this.currentImageFileHandle.getParent().getFileHandle(defaultFilename, { create: true });
+                        // PNG画像と同じディレクトリを開始ディレクトリとして設定
+                        const parentDirectoryHandle = await this.currentImageFileHandle.getParent();
+                        savePickerOptions.startIn = parentDirectoryHandle;
                     } catch (error) {
-                        console.log('同じディレクトリへの保存に失敗、通常の保存ダイアログを使用');
-                        // 同じディレクトリに保存できない場合は通常の保存ダイアログを使用
-                        fileHandle = await window.showSaveFilePicker({
-                            suggestedName: defaultFilename,
-                            types: [{
-                                description: 'JSON Files',
-                                accept: {
-                                    'application/json': ['.json']
-                                }
-                            }]
-                        });
+                        console.log('同じディレクトリの取得に失敗、デフォルトディレクトリを使用');
                     }
-                } else {
-                    // 通常のファイル保存ダイアログを表示
-                    fileHandle = await window.showSaveFilePicker({
-                        suggestedName: defaultFilename,
-                        types: [{
-                            description: 'JSON Files',
-                            accept: {
-                                'application/json': ['.json']
-                            }
-                        }]
-                    });
                 }
+                
+                // 保存ダイアログを表示
+                fileHandle = await window.showSaveFilePicker(savePickerOptions);
                 
                 // ファイルに書き込み
                 const writable = await fileHandle.createWritable();
