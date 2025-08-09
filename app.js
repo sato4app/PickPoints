@@ -36,6 +36,7 @@ class PickPoints {
     initializeEventListeners() {
         // DOM要素を取得
         const imageInput = document.getElementById('imageInput');
+        const imageInputLabel = document.querySelector('label[for="imageInput"]');
         const clearBtn = document.getElementById('clearBtn');
         const exportBtn = document.getElementById('exportBtn');
         const jsonInput = document.getElementById('jsonInput');
@@ -45,8 +46,11 @@ class PickPoints {
         const startPointInput = document.getElementById('startPointInput');
         const endPointInput = document.getElementById('endPointInput');
         
-        // 基本操作のイベントリスナー
-        imageInput.addEventListener('change', async (e) => await this.handleImageLoad(e));
+        // 画像選択のイベントリスナー（直接ファイルピッカーを呼び出し）
+        imageInputLabel.addEventListener('click', async (e) => {
+            e.preventDefault();
+            await this.handleImageSelection();
+        });
         this.canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
         
         // ポイント編集用のボタンイベント
@@ -115,7 +119,67 @@ class PickPoints {
     }
     
     /**
-     * PNG画像ファイルの読み込み処理
+     * 画像選択ボタンクリック時の処理（File System Access API使用）
+     */
+    async handleImageSelection() {
+        try {
+            // File System Access APIが利用可能かチェック
+            if ('showOpenFilePicker' in window) {
+                // ファイルピッカーを表示
+                const [fileHandle] = await window.showOpenFilePicker({
+                    types: [{
+                        description: 'PNG Files',
+                        accept: {
+                            'image/png': ['.png']
+                        }
+                    }],
+                    multiple: false
+                });
+                
+                // ファイルハンドルを保存
+                this.currentImageFileHandle = fileHandle;
+                
+                // ファイルを取得
+                const file = await fileHandle.getFile();
+                
+                // PNG形式の検証
+                if (!file.type.includes('png')) {
+                    alert('PNG画像ファイルを選択してください');
+                    return;
+                }
+                
+                // ファイル名を保存（拡張子を除く）
+                this.currentImageFileName = file.name.replace(/\.png$/i, '');
+                
+                // 画像を読み込み
+                await this.loadImageFromFile(file);
+                
+            } else {
+                // フォールバック: 従来のinputファイル選択
+                const imageInput = document.getElementById('imageInput');
+                imageInput.click();
+                
+                // 一時的にchangeイベントリスナーを追加
+                const handleFileSelect = async (e) => {
+                    await this.handleImageLoad(e);
+                    imageInput.removeEventListener('change', handleFileSelect);
+                };
+                imageInput.addEventListener('change', handleFileSelect);
+            }
+        } catch (error) {
+            // ユーザーがキャンセルした場合（AbortError）は何もしない
+            if (error.name === 'AbortError') {
+                console.log('ファイル選択がキャンセルされました');
+                return;
+            }
+            
+            console.error('ファイル選択エラー:', error);
+            alert('ファイル選択中にエラーが発生しました');
+        }
+    }
+
+    /**
+     * PNG画像ファイルの読み込み処理（従来のinput用）
      */
     async handleImageLoad(event) {
         // ファイル選択の検証
@@ -128,25 +192,14 @@ class PickPoints {
         // ファイル名を保存（拡張子を除く）
         this.currentImageFileName = file.name.replace(/\.png$/i, '');
         
-        // File System Access APIが利用可能な場合、ファイルハンドルを保存
-        if ('showOpenFilePicker' in window) {
-            try {
-                // ファイルハンドルを取得
-                const [fileHandle] = await window.showOpenFilePicker({
-                    types: [{
-                        description: 'PNG Files',
-                        accept: {
-                            'image/png': ['.png']
-                        }
-                    }],
-                    multiple: false
-                });
-                this.currentImageFileHandle = fileHandle;
-            } catch (error) {
-                console.log('File System Access APIが利用できません');
-            }
-        }
-        
+        // 画像を読み込み
+        await this.loadImageFromFile(file);
+    }
+
+    /**
+     * ファイルオブジェクトから画像を読み込み
+     */
+    async loadImageFromFile(file) {
         // FileReaderを使用して画像を読み込み
         const reader = new FileReader();
         reader.onload = (e) => {
