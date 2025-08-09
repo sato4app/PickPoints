@@ -136,9 +136,6 @@ class PickPoints {
                 this.drawImage();
                 this.enableControls();
                 this.setEditingMode('point');  // デフォルトでポイント編集モードに設定
-                
-                // 画像と同じフォルダから対応するJSONファイルを読み込むよう促す
-                this.promptForJSONLoad(file);
             };
             // 画像読み込み失敗時のエラーハンドリング
             img.onerror = () => {
@@ -149,16 +146,7 @@ class PickPoints {
         reader.readAsDataURL(file);
     }
     
-    /**
-     * 画像と同じフォルダからJSONファイルを読み込むよう促す
-     */
-    promptForJSONLoad(imageFile) {
-        // 自動的にJSONファイル選択ダイアログを開く
-        const jsonInput = document.getElementById('jsonInput');
-        if (jsonInput) {
-            jsonInput.click();
-        }
-    }
+
     
     /**
      * JSONファイルの読み込み処理（ポイントデータ）
@@ -760,7 +748,7 @@ class PickPoints {
     }
     
     /**
-     * ユーザーがファイルを指定してJSONデータをダウンロード
+     * ユーザーがファイルを指定してJSONデータをダウンロード（PNG画像と同じフォルダに保存）
      */
     downloadJSONWithUserChoice(data, type) {
         // JSON文字列に変換してBlobオブジェクトを作成
@@ -773,7 +761,7 @@ class PickPoints {
             `${this.currentImageFileName}_${type}.json` : 
             `${type}_${new Date().toISOString().slice(0, 10)}.json`;
         
-        // ダウンロードリンクを作成・実行
+        // ダウンロードリンクを作成・実行（ユーザーがファイル名と保存場所を選択可能）
         const a = document.createElement('a');
         a.href = url;
         a.download = defaultFilename;
