@@ -15,6 +15,7 @@ class PickPoints {
         this.points = [];              // ポイント編集モードのポイント配列
         this.currentImage = null;      // 現在読み込まれている画像
         this.currentImageFileName = ''; // 現在読み込まれている画像のファイル名
+        this.currentImageFileHandle = null; // 現在読み込まれている画像のファイルハンドル
         this.inputElements = [];       // 動的に生成された入力フィールド配列
         this.routePoints = [];         // ルート編集モードの中間点配列
         this.startPointId = '';        // ルートの開始ポイントID
@@ -45,7 +46,7 @@ class PickPoints {
         const endPointInput = document.getElementById('endPointInput');
         
         // 基本操作のイベントリスナー
-        imageInput.addEventListener('change', (e) => this.handleImageLoad(e));
+        imageInput.addEventListener('change', async (e) => await this.handleImageLoad(e));
         this.canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
         
         // ポイント編集用のボタンイベント
@@ -116,7 +117,7 @@ class PickPoints {
     /**
      * PNG画像ファイルの読み込み処理
      */
-    handleImageLoad(event) {
+    async handleImageLoad(event) {
         // ファイル選択の検証
         const file = event.target.files[0];
         if (!file || !file.type.includes('png')) {
@@ -126,6 +127,25 @@ class PickPoints {
         
         // ファイル名を保存（拡張子を除く）
         this.currentImageFileName = file.name.replace(/\.png$/i, '');
+        
+        // File System Access APIが利用可能な場合、ファイルハンドルを保存
+        if ('showOpenFilePicker' in window) {
+            try {
+                // ファイルハンドルを取得
+                const [fileHandle] = await window.showOpenFilePicker({
+                    types: [{
+                        description: 'PNG Files',
+                        accept: {
+                            'image/png': ['.png']
+                        }
+                    }],
+                    multiple: false
+                });
+                this.currentImageFileHandle = fileHandle;
+            } catch (error) {
+                console.log('File System Access APIが利用できません');
+            }
+        }
         
         // FileReaderを使用して画像を読み込み
         const reader = new FileReader();
@@ -765,16 +785,38 @@ class PickPoints {
         try {
             // File System Access APIが利用可能かチェック
             if ('showSaveFilePicker' in window) {
-                // ユーザーにファイル保存ダイアログを表示
-                const fileHandle = await window.showSaveFilePicker({
-                    suggestedName: defaultFilename,
-                    types: [{
-                        description: 'JSON Files',
-                        accept: {
-                            'application/json': ['.json']
-                        }
-                    }]
-                });
+                let fileHandle;
+                
+                // PNG画像のファイルハンドルがある場合、同じディレクトリに保存を試行
+                if (this.currentImageFileHandle) {
+                    try {
+                        // 同じディレクトリにファイルを作成
+                        fileHandle = await this.currentImageFileHandle.getParent().getFileHandle(defaultFilename, { create: true });
+                    } catch (error) {
+                        console.log('同じディレクトリへの保存に失敗、通常の保存ダイアログを使用');
+                        // 同じディレクトリに保存できない場合は通常の保存ダイアログを使用
+                        fileHandle = await window.showSaveFilePicker({
+                            suggestedName: defaultFilename,
+                            types: [{
+                                description: 'JSON Files',
+                                accept: {
+                                    'application/json': ['.json']
+                                }
+                            }]
+                        });
+                    }
+                } else {
+                    // 通常のファイル保存ダイアログを表示
+                    fileHandle = await window.showSaveFilePicker({
+                        suggestedName: defaultFilename,
+                        types: [{
+                            description: 'JSON Files',
+                            accept: {
+                                'application/json': ['.json']
+                            }
+                        }]
+                    });
+                }
                 
                 // ファイルに書き込み
                 const writable = await fileHandle.createWritable();
@@ -794,8 +836,14 @@ class PickPoints {
                 URL.revokeObjectURL(url);
             }
         } catch (error) {
+            // ユーザーがキャンセルした場合（AbortError）は何もしない
+            if (error.name === 'AbortError') {
+                console.log('ファイル保存がキャンセルされました');
+                return;
+            }
+            
             console.error('ファイル保存エラー:', error);
-            // エラー時は従来のダウンロード方式にフォールバック
+            // その他のエラー時は従来のダウンロード方式にフォールバック
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
