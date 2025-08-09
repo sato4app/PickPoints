@@ -54,6 +54,7 @@ class PickPoints {
             this.clearPoints();
         });
         
+        // ポイントJSONエクスポートボタン（非同期処理対応）
         exportBtn.addEventListener('click', async (e) => {
             e.preventDefault();
             await this.exportJSON();
@@ -68,6 +69,7 @@ class PickPoints {
             this.clearRoute();
         });
         
+        // ルートJSONエクスポートボタン（非同期処理対応）
         exportRouteBtn.addEventListener('click', async (e) => {
             e.preventDefault();
             await this.exportRouteJSON();
