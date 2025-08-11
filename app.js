@@ -510,9 +510,17 @@ class PickPoints {
                 return;
             }
             
+            // ID形式を自動修正
+            const formattedValue = this.formatPointId(value);
+            
+            // 修正された値を入力フィールドに反映
+            if (formattedValue !== value) {
+                e.target.value = formattedValue;
+            }
+            
             // IDを更新
             if (currentIndex >= 0) {
-                this.points[currentIndex].id = value;
+                this.points[currentIndex].id = formattedValue;
             }
         });
         
@@ -597,6 +605,39 @@ class PickPoints {
         this.inputElements = [];
     }
     
+    /**
+     * ポイントIDを「X-nn」形式に自動修正する
+     * X: 半角英大文字1桁、nn: 半角数字2桁（1桁の場合は0埋め）
+     * 全角文字が含まれる場合や形式が合わない場合は修正しない
+     */
+    formatPointId(value) {
+        // 空文字の場合はそのまま返す
+        if (!value || value.trim() === '') {
+            return value;
+        }
+        
+        // 全角文字が含まれている場合は修正しない
+        if (value.match(/[^\x00-\x7F]/)) {
+            return value;
+        }
+        
+        // 「英字-数字」または「英字数字」パターンをチェック
+        const match1 = value.match(/^([A-Za-z])[-]?(\d{1,2})$/);
+        if (match1) {
+            const letter = match1[1].toUpperCase();
+            const numbers = match1[2].padStart(2, '0');
+            return `${letter}-${numbers}`;
+        }
+        
+        // 「数字」のみの場合は修正しない（nnが数字でない場合の条件に該当）
+        if (value.match(/^\d+$/)) {
+            return value;
+        }
+        
+        // その他の形式の場合は修正しない
+        return value;
+    }
+
     /**
      * 指定インデックスのポイントを削除
      */
