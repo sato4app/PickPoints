@@ -637,20 +637,27 @@ class PickPoints {
     }
 
     /**
-     * 全角英文字と全角数字を半角に変換する
+     * 全角英文字と全角数字、全角ハイフンを半角に変換する
+     * 全角英文字は半角大文字に変換
      */
     convertFullWidthToHalfWidth(str) {
-        return str.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(char) {
-            // 全角英文字（Ａ-Ｚａ-ｚ）を半角に変換
+        return str.replace(/[Ａ-Ｚａ-ｚ０-９－]/g, function(char) {
+            // 全角英文字（Ａ-Ｚ）を半角大文字に変換
             if (char >= 'Ａ' && char <= 'Ｚ') {
                 return String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
             }
+            // 全角小文字（ａ-ｚ）を半角大文字に変換
             if (char >= 'ａ' && char <= 'ｚ') {
-                return String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
+                const halfWidthChar = String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
+                return halfWidthChar.toUpperCase();
             }
             // 全角数字（０-９）を半角に変換
             if (char >= '０' && char <= '９') {
                 return String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
+            }
+            // 全角ハイフン（－）を半角ハイフン（-）に変換
+            if (char === '－') {
+                return '-';
             }
             return char;
         });
