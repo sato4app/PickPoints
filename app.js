@@ -641,7 +641,7 @@ class PickPoints {
      * 全角英文字は半角大文字に変換
      */
     convertFullWidthToHalfWidth(str) {
-        return str.replace(/[Ａ-Ｚａ-ｚ０-９－]/g, function(char) {
+        return str.replace(/[Ａ-Ｚａ-ｚ０-９－−‐―]/g, function(char) {
             // 全角英文字（Ａ-Ｚ）を半角大文字に変換
             if (char >= 'Ａ' && char <= 'Ｚ') {
                 return String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
@@ -655,8 +655,8 @@ class PickPoints {
             if (char >= '０' && char <= '９') {
                 return String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
             }
-            // 全角ハイフン（－）を半角ハイフン（-）に変換
-            if (char === '－') {
+            // 各種全角ハイフン・ダッシュ類を半角ハイフン（-）に変換
+            if (char === '－' || char === '−' || char === '‐' || char === '―') {
                 return '-';
             }
             return char;
