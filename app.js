@@ -518,6 +518,15 @@ class PickPoints {
                 e.target.value = formattedValue;
             }
             
+            // フォーマットチェックと背景色設定
+            if (this.isValidPointIdFormat(formattedValue)) {
+                // 正しい形式の場合は背景色をリセット
+                e.target.style.backgroundColor = '';
+            } else {
+                // 正しくない形式の場合は薄いピンクに設定
+                e.target.style.backgroundColor = '#ffe4e4';
+            }
+            
             // IDを更新
             if (currentIndex >= 0) {
                 this.points[currentIndex].id = formattedValue;
@@ -634,6 +643,20 @@ class PickPoints {
         
         // X-nn形式に該当しない場合も、全角英数字の変換は適用する
         return convertedValue;
+    }
+
+    /**
+     * ポイントIDが「X-nn」形式（英大文字1桁-数字2桁）かどうかをチェック
+     */
+    isValidPointIdFormat(value) {
+        // 空文字の場合は有効とする
+        if (!value || value.trim() === '') {
+            return true;
+        }
+        
+        // X-nn形式（英大文字1桁-数字2桁）の正規表現
+        const validPattern = /^[A-Z]-\d{2}$/;
+        return validPattern.test(value);
     }
 
     /**
