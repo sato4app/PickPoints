@@ -779,6 +779,7 @@ class PickPoints {
                 endPoint: this.endPointId || '',
                 waypointCount: this.routePoints.length
             },
+            imageReference: this.currentImageFileName + '.png',
             imageInfo: {
                 width: this.currentImage.width,
                 height: this.currentImage.height
