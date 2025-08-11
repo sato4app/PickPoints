@@ -446,6 +446,7 @@ class PickPoints {
         // JSONデータ構造を作成
         const data = {
             totalPoints: this.points.length,
+            imageReference: this.currentImageFileName + '.png',
             imageInfo: {
                 width: this.currentImage.width,
                 height: this.currentImage.height
