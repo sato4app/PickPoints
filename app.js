@@ -608,7 +608,7 @@ class PickPoints {
     /**
      * ポイントIDを「X-nn」形式に自動修正する
      * X: 半角英大文字1桁、nn: 半角数字2桁（1桁の場合は0埋め）
-     * 全角文字が含まれる場合や形式が合わない場合は修正しない
+     * 全角英文字・全角数字を半角に変換してから処理する（平仮名・漢字が含まれていても変換）
      */
     formatPointId(value) {
         // 空文字の場合はそのまま返す
@@ -616,26 +616,44 @@ class PickPoints {
             return value;
         }
         
-        // 全角文字が含まれている場合は修正しない
-        if (value.match(/[^\x00-\x7F]/)) {
-            return value;
-        }
+        // 全角文字の半角変換処理（平仮名・漢字が含まれていても全角英数字は変換）
+        let convertedValue = this.convertFullWidthToHalfWidth(value);
         
         // 「英字-数字」または「英字数字」パターンをチェック
-        const match1 = value.match(/^([A-Za-z])[-]?(\d{1,2})$/);
+        const match1 = convertedValue.match(/^([A-Za-z])[-]?(\d{1,2})$/);
         if (match1) {
             const letter = match1[1].toUpperCase();
             const numbers = match1[2].padStart(2, '0');
             return `${letter}-${numbers}`;
         }
         
-        // 「数字」のみの場合は修正しない（nnが数字でない場合の条件に該当）
-        if (value.match(/^\d+$/)) {
-            return value;
+        // 「数字」のみの場合は半角変換のみ適用
+        if (convertedValue.match(/^\d+$/)) {
+            return convertedValue;
         }
         
-        // その他の形式の場合は修正しない
-        return value;
+        // X-nn形式に該当しない場合も、全角英数字の変換は適用する
+        return convertedValue;
+    }
+
+    /**
+     * 全角英文字と全角数字を半角に変換する
+     */
+    convertFullWidthToHalfWidth(str) {
+        return str.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(char) {
+            // 全角英文字（Ａ-Ｚａ-ｚ）を半角に変換
+            if (char >= 'Ａ' && char <= 'Ｚ') {
+                return String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
+            }
+            if (char >= 'ａ' && char <= 'ｚ') {
+                return String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
+            }
+            // 全角数字（０-９）を半角に変換
+            if (char >= '０' && char <= '９') {
+                return String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
+            }
+            return char;
+        });
     }
 
     /**
