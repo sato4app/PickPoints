@@ -305,18 +305,6 @@ class PickPoints {
                 this.points.push(point);
                 this.createInputBox(point, this.points.length - 1);
             }
-            // 旧形式（x, y）との後方互換性
-            else if (pointData.x !== undefined && pointData.y !== undefined) {
-                // 元画像座標からキャンバス座標に変換
-                const point = {
-                    x: Math.round(pointData.x * scaleX),
-                    y: Math.round(pointData.y * scaleY),
-                    id: pointData.id || '',
-                    isMarker: pointData.isMarker || false
-                };
-                this.points.push(point);
-                this.createInputBox(point, this.points.length - 1);
-            }
         });
         
         // 画面を更新
@@ -958,14 +946,6 @@ class PickPoints {
                     const point = {
                         x: Math.round(pointData.imageX * scaleX),
                         y: Math.round(pointData.imageY * scaleY)
-                    };
-                    this.routePoints.push(point);
-                }
-                // 旧形式（x, y）との後方互換性
-                else if (pointData.x !== undefined && pointData.y !== undefined) {
-                    const point = {
-                        x: Math.round(pointData.x * scaleX),
-                        y: Math.round(pointData.y * scaleY)
                     };
                     this.routePoints.push(point);
                 }
