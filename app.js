@@ -97,6 +97,26 @@ class PickPoints {
             this.drawImage();
         });
         
+        // 開始ポイントのblurイベント（X-nn形式のフォーマット）
+        startPointInput.addEventListener('blur', (e) => {
+            const formattedValue = this.formatPointId(e.target.value);
+            if (formattedValue !== e.target.value) {
+                this.startPointId = formattedValue;
+                e.target.value = formattedValue;
+                this.drawImage();
+            }
+        });
+        
+        // 終了ポイントのblurイベント（X-nn形式のフォーマット）
+        endPointInput.addEventListener('blur', (e) => {
+            const formattedValue = this.formatPointId(e.target.value);
+            if (formattedValue !== e.target.value) {
+                this.endPointId = formattedValue;
+                e.target.value = formattedValue;
+                this.drawImage();
+            }
+        });
+        
         // レイアウト選択ラジオボタンのイベント
         const layoutRadios = document.querySelectorAll('input[name=\"layout\"]');
         layoutRadios.forEach(radio => {
