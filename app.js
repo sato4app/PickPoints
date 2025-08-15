@@ -273,7 +273,20 @@ class PickPoints {
         
         // JSONからポイントデータを復元
         data.points.forEach(pointData => {
-            if (pointData.x !== undefined && pointData.y !== undefined) {
+            // 新しい形式（imageX, imageY）をチェック
+            if (pointData.imageX !== undefined && pointData.imageY !== undefined) {
+                // 元画像座標からキャンバス座標に変換
+                const point = {
+                    x: Math.round(pointData.imageX * scaleX),
+                    y: Math.round(pointData.imageY * scaleY),
+                    id: pointData.id || '',
+                    isMarker: pointData.isMarker || false
+                };
+                this.points.push(point);
+                this.createInputBox(point, this.points.length - 1);
+            }
+            // 旧形式（x, y）との後方互換性
+            else if (pointData.x !== undefined && pointData.y !== undefined) {
                 // 元画像座標からキャンバス座標に変換
                 const point = {
                     x: Math.round(pointData.x * scaleX),
@@ -454,8 +467,8 @@ class PickPoints {
             points: this.points.map((point, index) => ({
                 index: index + 1,
                 id: point.id || '',
-                x: Math.round(point.x * scaleX),
-                y: Math.round(point.y * scaleY),
+                imageX: Math.round(point.x * scaleX),
+                imageY: Math.round(point.y * scaleY),
                 isMarker: point.isMarker || false
             })),
             exportedAt: new Date().toISOString()
@@ -787,8 +800,8 @@ class PickPoints {
             points: this.routePoints.map((point, index) => ({
                 type: 'waypoint',
                 index: index + 1,
-                x: Math.round(point.x * scaleX),
-                y: Math.round(point.y * scaleY)
+                imageX: Math.round(point.x * scaleX),
+                imageY: Math.round(point.y * scaleY)
             })),
             exportedAt: new Date().toISOString()
         };
@@ -919,12 +932,23 @@ class PickPoints {
         
         // 中間点データを復元（元画像座標からキャンバス座標に変換）
         data.points.forEach(pointData => {
-            if (pointData.x !== undefined && pointData.y !== undefined && pointData.type === 'waypoint') {
-                const point = {
-                    x: Math.round(pointData.x * scaleX),
-                    y: Math.round(pointData.y * scaleY)
-                };
-                this.routePoints.push(point);
+            if (pointData.type === 'waypoint') {
+                // 新しい形式（imageX, imageY）をチェック
+                if (pointData.imageX !== undefined && pointData.imageY !== undefined) {
+                    const point = {
+                        x: Math.round(pointData.imageX * scaleX),
+                        y: Math.round(pointData.imageY * scaleY)
+                    };
+                    this.routePoints.push(point);
+                }
+                // 旧形式（x, y）との後方互換性
+                else if (pointData.x !== undefined && pointData.y !== undefined) {
+                    const point = {
+                        x: Math.round(pointData.x * scaleX),
+                        y: Math.round(pointData.y * scaleY)
+                    };
+                    this.routePoints.push(point);
+                }
             }
         });
         
